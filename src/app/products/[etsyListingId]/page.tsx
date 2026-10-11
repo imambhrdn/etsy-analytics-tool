@@ -131,21 +131,21 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
         <h1 className="text-2xl font-bold tracking-tight">{listing.title}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="font-mono text-xs">
-            ID: {listing.etsyListingId}
+            {listing.etsyListingId}
           </Badge>
           {listing.shopName && (
             <Badge variant="secondary" className="gap-1 text-xs">
               <Store className="size-3" />
-              Toko: {listing.shopName}
+              {listing.shopName}
             </Badge>
           )}
           {listing.listingType === "download" ? (
-            <Badge className="bg-sky-600/90 text-white text-xs">
-              ⚡ Digital Download
+            <Badge className="bg-sky-600/90 text-white text-xs font-medium">
+              Digital Download
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-xs">
-              📦 Produk Fisik
+            <Badge variant="outline" className="text-xs font-medium">
+              Produk Fisik
             </Badge>
           )}
         </div>

@@ -25,10 +25,10 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <div className="flex items-center justify-between gap-2 px-2 py-1.5">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-md text-sm font-semibold">
+      <SidebarHeader className="p-2 group-data-[collapsible=icon]:p-2">
+        <div className="flex items-center justify-between gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full">
+          <div className="flex items-center gap-2 min-w-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full">
+            <div className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-md text-sm font-semibold mx-auto">
               EI
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
@@ -40,7 +40,7 @@ export function AppSidebar() {
           <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
         </div>
         {/* Trigger saat mode icon kecil */}
-        <div className="hidden group-data-[collapsible=icon]:flex justify-center py-1">
+        <div className="hidden group-data-[collapsible=icon]:flex justify-center w-full pt-1">
           <SidebarTrigger />
         </div>
       </SidebarHeader>

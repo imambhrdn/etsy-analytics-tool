@@ -39,9 +39,10 @@ export async function GET(request: Request) {
     const offset = (page - 1) * limit;
 
     const client = new EtsyClient();
+    const fetchLimit = listing_type && listing_type !== "all" ? Math.min(limit * 3, 100) : limit;
     const data = await client.searchActiveListings({
       keywords: q,
-      limit,
+      limit: fetchLimit,
       offset,
       minPrice: min_price,
       maxPrice: max_price,

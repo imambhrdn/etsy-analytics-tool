@@ -11,10 +11,16 @@ export function normalizeListing(raw: EtsyRawListing): NormalizedListing {
   const price = Number((rawAmount / divisor).toFixed(2));
   const currencyCode = raw.price?.currency_code || "USD";
 
-  const createdAtEtsy =
-    typeof raw.created_timestamp === "number" && raw.created_timestamp > 0
-      ? new Date(raw.created_timestamp * 1000).toISOString()
-      : null;
+  const rawCreated =
+    typeof raw.original_creation_timestamp === "number" && raw.original_creation_timestamp > 0
+      ? raw.original_creation_timestamp
+      : typeof raw.creation_timestamp === "number" && raw.creation_timestamp > 0
+        ? raw.creation_timestamp
+        : typeof raw.created_timestamp === "number" && raw.created_timestamp > 0
+          ? raw.created_timestamp
+          : null;
+
+  const createdAtEtsy = rawCreated ? new Date(rawCreated * 1000).toISOString() : null;
 
   const updatedAtEtsy =
     typeof raw.updated_timestamp === "number" && raw.updated_timestamp > 0

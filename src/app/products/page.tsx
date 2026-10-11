@@ -25,7 +25,7 @@ type SearchParams = Promise<{
   sort_order?: "asc" | "desc";
 }>;
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 36;
 
 function ProductGridSkeleton() {
   return (
@@ -63,11 +63,12 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
   if (q) {
     try {
       const client = new EtsyClient();
+      const fetchLimit = listingType ? 100 : PAGE_SIZE;
       const offset = (currentPage - 1) * PAGE_SIZE;
 
       const data = await client.searchActiveListings({
         keywords: q,
-        limit: PAGE_SIZE,
+        limit: fetchLimit,
         offset,
         minPrice,
         maxPrice,
@@ -76,10 +77,14 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
       });
 
       // Filter berdasarkan tipe listing jika dipilih
-      listings = listingType
+      const filtered = listingType
         ? data.results.filter((l) => l.listingType === listingType)
         : data.results;
-      totalCount = listingType ? listings.length : data.count;
+
+      listings = filtered;
+      totalCount = listingType
+        ? Math.round((data.count * filtered.length) / Math.max(data.results.length, 1))
+        : data.count;
       quotaRemaining = data.rateLimit.remainingToday;
 
       try {

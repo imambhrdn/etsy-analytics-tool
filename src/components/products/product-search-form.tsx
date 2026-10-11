@@ -119,7 +119,7 @@ export function ProductSearchForm() {
               : "bg-muted/40 hover:bg-muted text-muted-foreground border-transparent"
           }`}
         >
-          ⚡ Digital Download
+          Digital Download
         </button>
         <button
           type="button"
@@ -130,7 +130,7 @@ export function ProductSearchForm() {
               : "bg-muted/40 hover:bg-muted text-muted-foreground border-transparent"
           }`}
         >
-          📦 Produk Fisik
+          Produk Fisik
         </button>
       </div>
 

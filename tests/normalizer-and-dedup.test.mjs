@@ -36,10 +36,16 @@ function normalizeListing(raw) {
   const price = Number((rawAmount / divisor).toFixed(2));
   const currencyCode = raw.price?.currency_code || "USD";
 
-  const createdAtEtsy =
-    typeof raw.created_timestamp === "number" && raw.created_timestamp > 0
-      ? new Date(raw.created_timestamp * 1000).toISOString()
-      : null;
+  const rawCreated =
+    typeof raw.original_creation_timestamp === "number" && raw.original_creation_timestamp > 0
+      ? raw.original_creation_timestamp
+      : typeof raw.creation_timestamp === "number" && raw.creation_timestamp > 0
+        ? raw.creation_timestamp
+        : typeof raw.created_timestamp === "number" && raw.created_timestamp > 0
+          ? raw.created_timestamp
+          : null;
+
+  const createdAtEtsy = rawCreated ? new Date(rawCreated * 1000).toISOString() : null;
 
   const updatedAtEtsy =
     typeof raw.updated_timestamp === "number" && raw.updated_timestamp > 0
@@ -126,9 +132,20 @@ if (!sbUrl || !sbKey) {
 
 const TEST_LISTING_ID = 99999999901;
 
+async function fetchWithRetry(url, options = {}, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fetch(url, options);
+    } catch (err) {
+      if (i === retries) throw err;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }
+}
+
 async function runDbTest() {
   // Bersihkan dulu jika ada sisa dari run sebelumnya
-  await fetch(`${sbUrl}/rest/v1/listings?etsy_listing_id=eq.${TEST_LISTING_ID}`, {
+  await fetchWithRetry(`${sbUrl}/rest/v1/listings?etsy_listing_id=eq.${TEST_LISTING_ID}`, {
     method: "DELETE",
     headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` },
   });
@@ -146,7 +163,7 @@ async function runDbTest() {
     },
   ];
 
-  const res1 = await fetch(`${sbUrl}/rest/v1/listings?on_conflict=etsy_listing_id`, {
+  const res1 = await fetchWithRetry(`${sbUrl}/rest/v1/listings?on_conflict=etsy_listing_id`, {
     method: "POST",
     headers: {
       apikey: sbKey,
@@ -173,7 +190,7 @@ async function runDbTest() {
     },
   ];
 
-  const res2 = await fetch(`${sbUrl}/rest/v1/listings?on_conflict=etsy_listing_id`, {
+  const res2 = await fetchWithRetry(`${sbUrl}/rest/v1/listings?on_conflict=etsy_listing_id`, {
     method: "POST",
     headers: {
       apikey: sbKey,
@@ -191,7 +208,7 @@ async function runDbTest() {
   console.log(`  [pass] Upsert kedua (merge duplicate) berhasil (HTTP ${res2.status})`);
 
   // 3. Verifikasi jumlah baris di DB untuk ID tersebut tetap 1 (dedup terbukti)
-  const queryRes = await fetch(
+  const queryRes = await fetchWithRetry(
     `${sbUrl}/rest/v1/listings?etsy_listing_id=eq.${TEST_LISTING_ID}&select=*`,
     {
       headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` },
@@ -205,7 +222,7 @@ async function runDbTest() {
   console.log("  [pass] Dedup terverifikasi: data baris tepat 1 dan data ter-update!");
 
   // 4. Bersihkan data test
-  await fetch(`${sbUrl}/rest/v1/listings?etsy_listing_id=eq.${TEST_LISTING_ID}`, {
+  await fetchWithRetry(`${sbUrl}/rest/v1/listings?etsy_listing_id=eq.${TEST_LISTING_ID}`, {
     method: "DELETE",
     headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` },
   });
@@ -215,6 +232,6 @@ async function runDbTest() {
 }
 
 runDbTest().catch((err) => {
-  console.error("Test GAGAL:", err.message);
+  console.error("Test GAGAL:", err.message, err.cause || "");
   process.exit(1);
 });
