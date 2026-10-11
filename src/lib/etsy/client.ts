@@ -79,7 +79,7 @@ export class EtsyClient {
       }
     }
 
-    const t0 = Date.now();
+    const t0 = performance.now();
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
@@ -93,7 +93,7 @@ export class EtsyClient {
         });
 
         const rateLimit = parseRateLimit(res.headers);
-        const duration = Date.now() - t0;
+        const duration = Math.round(performance.now() - t0);
 
         // Logging terstruktur dan AMAN (tanpa rahasia/token - PRD §5, §12)
         console.log(
