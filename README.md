@@ -4,13 +4,19 @@ Aplikasi web pribadi untuk riset produk Etsy dan mengelola toko sendiri:
 **Today's Etsy Trends**, **Product Explorer**, **Competitor Tracker**, **Idea Vault**,
 **My Shop**, **Scheduled Research** (n8n), dan **Research Brief** berbantuan AI.
 
+> Alat analitik pribadi untuk riset SEO dan listing.
+>
+> The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API
+> but is not endorsed or certified by Etsy, Inc.
+
 - **Spesifikasi:** [`etsy_intelligence_prd.md`](./etsy_intelligence_prd.md) (v1.0)
 - **Papan tugas:** [`TASKBOARD.md`](./TASKBOARD.md)
 - **Rencana implementasi:** [`IMPLEMENTATION_PLAN.md`](./IMPLEMENTATION_PLAN.md)
 - **Zona waktu:** Asia/Jakarta (WIB)
 
-> Status: **Phase 1 (Foundation) selesai.** Fitur riset data (Explorer, Trends,
-> Idea Vault, dll.) masih berstatus "Coming later" — lihat TASKBOARD.
+> Status: **Phase 0, 1, 2 (+ UX polish) selesai.** Product Explorer sudah berfungsi
+> (pencarian live Etsy, galeri gambar & video, harga IDR). Fitur riset data lain
+> (Trends, Idea Vault, dll.) menyusul — lihat TASKBOARD.
 
 ## Stack
 
