@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -31,7 +32,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full">
         <TooltipProvider>
           <SidebarProvider>
-            <AppSidebar />
+            <Suspense fallback={null}>
+              <AppSidebar />
+            </Suspense>
             <SidebarInset>
               <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
                 <SidebarTrigger className="-ml-1" />

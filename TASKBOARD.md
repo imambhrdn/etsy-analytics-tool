@@ -75,14 +75,14 @@ task aktif. **Kedaluwarsa default: 24 jam** — setelah itu boleh diambil alih
 |:-----|:-----|:------|:------:|:------------|
 | 0 | Repository inspection & plan | `IMPLEMENTATION_PLAN.md`, asumsi, blocker | `[x]` | `file:IMPLEMENTATION_PLAN.md` |
 | 1 | Foundation | Next.js/TS/Tailwind, layout sidebar, schema, `.env.example`, migrasi awal | `[x]` | `file:src/`, `migrations/`, `.env.example` |
-| 2 | Etsy API client & Product Explorer | adapter server-only, search, dedup/upsert, listing detail | `[ ]` | |
+| 2 | Etsy API client & Product Explorer | adapter server-only, search, dedup/upsert, listing detail | `[x]` | `file:src/lib/etsy/`, `/products`, tests pass |
 | 3 | Daily discovery & snapshots | seeds, scheduled job, snapshot, Today's Etsy Trends | `[ ]` | |
 | 4 | Trend scoring & Idea Vault | delta 7/30/90, classification, score, Idea Vault, unit test | `[ ]` | |
 | 5 | Competitor Tracker & My Shop | tracking toko/listing, OAuth read-only | `[ ]` | |
 | 6 | n8n & reports | workflow A/B/C, job status, alerts dedup, report | `[ ]` | |
 | 7 | Hardening | lint/typecheck/test/build, a11y, RLS, docs, DoD | `[ ]` | |
 
-**Fase aktif saat ini:** `Phase 2` ← perbarui tiap sesi.
+**Fase aktif saat ini:** `Phase 3` ← perbarui tiap sesi.
 
 ---
 
@@ -113,19 +113,19 @@ Format kolom Bukti: `commit:<sha>` / `file:<path>` / `test:<nama>` / `note:<teks
 | P1-07 | Migrasi database awal (PRD §10) | P0 | `[x]` | ses-2026-10-11-b | `migrations/0001_initial_schema.sql`, `0002_rls.sql` (12 tabel) |
 | P1-08 | Struktur folder terdokumentasi | P1 | `[x]` | ses-2026-10-11-b | `file:README.md` |
 
-### Phase 2 — Etsy API Client & Product Explorer  `[ ]`
+### Phase 2 — Etsy API Client & Product Explorer  `[x]`
 
 | ID | Task | Prio | Status | Owner | Bukti / Catatan |
 |:---|:-----|:----:|:------:|:------|:----------------|
-| P2-01 | Etsy adapter **server-only** (isolasi respons API) | P0 | `[ ]` | | |
-| P2-02 | Endpoint pencarian sesuai API access aktual | P0 | `[ ]` | | |
-| P2-03 | Normalisasi payload → model internal | P0 | `[ ]` | | |
-| P2-04 | Pagination + batas jumlah + error handling | P0 | `[ ]` | | |
-| P2-05 | Logging aman (tanpa secret/token) | P0 | `[ ]` | | |
-| P2-06 | Product Explorer `/products` (PRD §7.2) | P0 | `[ ]` | | |
-| P2-07 | Listing Detail `/products/[etsyListingId]` (PRD §7.3) | P0 | `[ ]` | | |
-| P2-08 | Catat `search_runs` (query/filter/time) | P0 | `[ ]` | | |
-| P2-09 | Uji dedup/upsert berdasarkan Etsy listing ID | P0 | `[ ]` | | |
+| P2-01 | Etsy adapter **server-only** (isolasi respons API) | P0 | `[x]` | ses-2026-10-11-c | `file:src/lib/etsy/client.ts` (`server-only`, safe headers/errors) |
+| P2-02 | Endpoint pencarian sesuai API access aktual | P0 | `[x]` | ses-2026-10-11-c | `findAllListingsActive` (publik) di `client.ts` & `/api/products` |
+| P2-03 | Normalisasi payload → model internal | P0 | `[x]` | ses-2026-10-11-c | `file:src/lib/etsy/normalizer.ts` (amount/divisor, ISO time, tags) |
+| P2-04 | Pagination + batas jumlah + error handling | P0 | `[x]` | ses-2026-10-11-c | Pagination 24/page, 429 backoff retry, limits 1-100 |
+| P2-05 | Logging aman (tanpa secret/token) | P0 | `[x]` | ses-2026-10-11-c | `client.ts` log endpoint/status/duration tanpa rahasia |
+| P2-06 | Product Explorer `/products` (PRD §7.2) | P0 | `[x]` | ses-2026-10-11-c | `file:src/app/products/page.tsx`, search form, cards, pagination |
+| P2-07 | Listing Detail `/products/[etsyListingId]` (PRD §7.3) | P0 | `[x]` | ses-2026-10-11-c | `file:src/app/products/[etsyListingId]/page.tsx`, gallery, snapshots |
+| P2-08 | Catat `search_runs` (query/filter/time) | P0 | `[x]` | ses-2026-10-11-c | `file:src/lib/db/listings-repo.ts` (terekam di DB tabel `search_runs`) |
+| P2-09 | Uji dedup/upsert berdasarkan Etsy listing ID | P0 | `[x]` | ses-2026-10-11-c | `test:normalizer-and-dedup.test.mjs` (merge-duplicate lolos) |
 
 ### Phase 3 — Daily Discovery & Snapshots  `[ ]`
 
@@ -240,13 +240,13 @@ Format kolom Bukti: `commit:<sha>` / `file:<path>` / `test:<nama>` / `note:<teks
 |:-----|:-------------|:--|
 | 0 | 5 / 5 | 100% |
 | 1 | 8 / 8 | 100% |
-| 2 | 0 / 9 | 0% |
+| 2 | 9 / 9 | 100% |
 | 3 | 0 / 8 | 0% |
 | 4 | 0 / 8 | 0% |
 | 5 | 0 / 8 | 0% |
 | 6 | 0 / 8 | 0% |
 | 7 | 0 / 6 | 0% |
-| **Total** | **13 / 60** | **22%** |
+| **Total** | **22 / 60** | **37%** |
 
 ---
 
@@ -270,6 +270,15 @@ Format kolom Bukti: `commit:<sha>` / `file:<path>` / `test:<nama>` / `note:<teks
 ### Log
 
 <!-- Tambahkan entri baru di bawah baris ini -->
+
+### [2026-10-11] session:ses-2026-10-11-c
+- Fase: Phase 2
+- Task diklaim: P2-01..P2-09
+- Task selesai: P2-01..P2-09 → bukti: `file:src/lib/etsy/client.ts`, `normalizer.ts`, `listings-repo.ts`, `src/app/products/page.tsx`, `src/app/products/[etsyListingId]/page.tsx`, `src/app/api/products/`; unit test & integration test pass.
+- Task diblokir: —
+- Perintah dijalankan: `npm run db:migrate` (12/12 tabel migrasi sukses via connection pooler), `npm test` (unit test normalizer + integration test dedup/upsert lolos), `npx next typegen`, `npx tsc --noEmit`, `npm run lint`, `npm run build` (sukses, exit code 0), `npm run dev` + query live Etsy API (`crochet pattern` -> 1.03jt listing, detail + 6 gambar, snapshot terekam di DB, search_runs terekam).
+- Fase berikutnya: Phase 3 (Daily discovery & snapshots)
+- Catatan/asumsi baru: Empty string di `.env.local` ditangani via Zod `emptyToUndefined` di `src/lib/config/env.ts` agar tidak memicu error validasi `min(1)`; Client component URL hooks di `layout.tsx` dibungkus `<Suspense>` untuk kepatuhan Next.js 16 prerender; `next.config.ts` ditambahkan domain `i.etsystatic.com` untuk gambar Etsy.
 
 ### [2026-10-11] session:ses-2026-10-11-b
 - Fase: Phase 1

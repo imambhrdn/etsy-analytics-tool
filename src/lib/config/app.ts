@@ -47,7 +47,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Overview",
     items: [
       { title: "Today's Etsy Trends", href: "/", icon: LayoutDashboard, status: "ready" },
-      { title: "Product Explorer", href: "/products", icon: Search, status: "later" },
+      { title: "Product Explorer", href: "/products", icon: Search, status: "ready" },
       { title: "Idea Vault", href: "/ideas", icon: Lightbulb, status: "later" },
     ],
   },

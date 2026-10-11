@@ -1,51 +1,52 @@
 import { z } from "zod";
 
 /**
+ * Preprocessor untuk menangani nilai empty string ("") dari file .env
+ * agar dianggap undefined daripada gagal di validasi min(1) atau url().
+ */
+const emptyToUndefined = z.preprocess((val) => {
+  if (typeof val === "string" && val.trim() === "") return undefined;
+  return val;
+}, z.string().optional());
+
+const emptyToUndefinedUrl = z.preprocess((val) => {
+  if (typeof val === "string" && val.trim() === "") return undefined;
+  return val;
+}, z.url().optional());
+
+/**
  * Skema environment server-side.
- *
- * Semua nilai OPSIONAL agar aplikasi tetap bisa jalan (mode kosong/empty state)
- * sebelum kredensial Etsy/Supabase tersedia — lihat IMPLEMENTATION_PLAN.md B1/B2.
- * Validasi ini hanya memastikan bentuk (format) saat nilainya diisi.
+ * Semua nilai bersifat OPSIONAL agar aplikasi tetap berjalan aman
+ * meskipun sebagian kredensial belum diisi di .env.local.
  */
 const serverEnvSchema = z.object({
-  // Supabase (server)
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
-
-  // Etsy API
-  ETSY_API_KEY: z.string().min(1).optional(),
-  ETSY_SHARED_SECRET: z.string().min(1).optional(),
-  ETSY_REDIRECT_URI: z.url().optional(),
-
-  // Keamanan token OAuth
-  TOKEN_ENCRYPTION_KEY: z.string().min(1).optional(),
-
-  // n8n (server-only)
-  N8N_BASE_URL: z.url().optional(),
-  N8N_WEBHOOK_SECRET: z.string().min(1).optional(),
-
-  // AI (opsional)
-  AI_PROVIDER_API_KEY: z.string().min(1).optional(),
-
-  // App
-  APP_TIMEZONE: z.string().min(1).default("Asia/Jakarta"),
+  SUPABASE_SERVICE_ROLE_KEY: emptyToUndefined,
+  ETSY_API_KEY: emptyToUndefined,
+  ETSY_SHARED_SECRET: emptyToUndefined,
+  ETSY_REDIRECT_URI: emptyToUndefinedUrl,
+  TOKEN_ENCRYPTION_KEY: emptyToUndefined,
+  N8N_BASE_URL: emptyToUndefinedUrl,
+  N8N_WEBHOOK_SECRET: emptyToUndefined,
+  AI_PROVIDER_API_KEY: emptyToUndefined,
+  APP_TIMEZONE: z
+    .preprocess(
+      (v) => (typeof v === "string" && v.trim() !== "" ? v : "Asia/Jakarta"),
+      z.string(),
+    )
+    .default("Asia/Jakarta"),
 });
 
 /**
  * Skema environment publik (dibundel ke client).
- * JANGAN tambahkan rahasia di sini.
  */
 const publicEnvSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.url().optional(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
+  NEXT_PUBLIC_SUPABASE_URL: emptyToUndefinedUrl,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: emptyToUndefined,
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 export type PublicEnv = z.infer<typeof publicEnvSchema>;
 
-/**
- * Baca + validasi environment server-side.
- * Panggil dari kode server-only saja (server component / route handler).
- */
 export function getServerEnv(): ServerEnv {
   return serverEnvSchema.parse({
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -60,7 +61,6 @@ export function getServerEnv(): ServerEnv {
   });
 }
 
-/** Baca environment publik (aman di client). */
 export function getPublicEnv(): PublicEnv {
   return publicEnvSchema.parse({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -68,12 +68,8 @@ export function getPublicEnv(): PublicEnv {
   });
 }
 
-/**
- * Ringkasan status koneksi untuk UI diagnostik (PRD §7.8).
- * Hanya mengembalikan boolean terisi/tidak — TIDAK pernah nilai rahasia.
- */
 export function getIntegrationStatus() {
-  const has = (v: string | undefined) => typeof v === "string" && v.length > 0;
+  const has = (v: string | undefined) => typeof v === "string" && v.trim().length > 0;
   return {
     etsyApiKey: has(process.env.ETSY_API_KEY),
     etsySharedSecret: has(process.env.ETSY_SHARED_SECRET),
