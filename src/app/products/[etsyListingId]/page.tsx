@@ -11,9 +11,9 @@ import {
   Clock,
   ShoppingBag,
   Star,
-  Info,
+  Store,
 } from "lucide-react";
-import { PageHeader } from "@/components/page-header";
+import { formatNumber, formatDateIndo } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,10 +127,29 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
         </Button>
       </div>
 
-      <PageHeader
-        title={listing.title}
-        description={`Etsy Listing ID: ${listing.etsyListingId}${listing.shopName ? ` · Toko: ${listing.shopName}` : ""}`}
-      />
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight">{listing.title}</h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline" className="font-mono text-xs">
+            ID: {listing.etsyListingId}
+          </Badge>
+          {listing.shopName && (
+            <Badge variant="secondary" className="gap-1 text-xs">
+              <Store className="size-3" />
+              Toko: {listing.shopName}
+            </Badge>
+          )}
+          {listing.listingType === "download" ? (
+            <Badge className="bg-sky-600/90 text-white text-xs">
+              ⚡ Digital Download
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-xs">
+              📦 Produk Fisik
+            </Badge>
+          )}
+        </div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Kolom Kiri: Galeri Foto Lengkap & Deskripsi */}
@@ -198,16 +217,16 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
                   <TableBody>
                     {snapshots.map((snap) => (
                       <TableRow key={snap.id}>
-                        <TableCell className="font-mono text-xs">
-                          {snap.captured_at.slice(0, 19).replace("T", " ")}
+                        <TableCell className="text-xs">
+                          {formatDateIndo(snap.captured_at)}
                         </TableCell>
                         <TableCell className="font-medium text-xs">
                           {snap.currency_code} {snap.price?.toFixed(2) ?? "—"}
                         </TableCell>
                         <TableCell className="text-xs">
-                          {snap.num_favorers ?? "—"}
+                          {formatNumber(snap.num_favorers)}
                         </TableCell>
-                        <TableCell className="text-xs">{snap.quantity ?? "—"}</TableCell>
+                        <TableCell className="text-xs">{formatNumber(snap.quantity)}</TableCell>
                         <TableCell className="text-muted-foreground text-xs">
                           {snap.source || "explorer"}
                         </TableCell>
@@ -267,7 +286,7 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
                       Total Penjualan Toko:
                     </span>
                     <span className="font-semibold text-emerald-600">
-                      {listing.shopSoldCount} terjual
+                      {formatNumber(listing.shopSoldCount)} terjual
                     </span>
                   </div>
                 )}
@@ -279,7 +298,7 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
                       Review Toko:
                     </span>
                     <span className="font-medium">
-                      {listing.shopReviewCount} review
+                      {formatNumber(listing.shopReviewCount)} review
                     </span>
                   </div>
                 )}
@@ -290,8 +309,8 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
                       <Calendar className="size-3.5" />
                       Dibuat di Etsy:
                     </span>
-                    <span className="font-mono font-medium">
-                      {listing.createdAtEtsy.slice(0, 10)}
+                    <span className="font-medium">
+                      {formatDateIndo(listing.createdAtEtsy)}
                     </span>
                   </div>
                 )}
@@ -302,19 +321,11 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
                       <Clock className="size-3.5" />
                       Update Terakhir:
                     </span>
-                    <span className="font-mono">
-                      {listing.updatedAtEtsy.slice(0, 10)}
+                    <span className="font-medium">
+                      {formatDateIndo(listing.updatedAtEtsy)}
                     </span>
                   </div>
                 )}
-              </div>
-
-              {/* Penjelasan Kebijakan Data Sesuai PRD §3.2 & §12 */}
-              <div className="bg-muted/50 text-muted-foreground flex items-start gap-2 rounded-md p-2.5 text-[11px] leading-tight">
-                <Info className="size-4 shrink-0 mt-0.5" />
-                <span>
-                  Etsy Open API v3 menyediakan total penjualan pada level toko. Data penjualan per listing individu tidak diekspos oleh API untuk perlindungan privasi penjual.
-                </span>
               </div>
             </CardContent>
           </Card>

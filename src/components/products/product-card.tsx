@@ -7,6 +7,7 @@ import { Heart, ExternalLink, Lightbulb, Check, Calendar, ShoppingBag } from "lu
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatDateIndo } from "@/lib/utils";
 import type { NormalizedListing } from "@/lib/etsy/types";
 
 export function ProductCard({ listing }: { listing: NormalizedListing }) {
@@ -92,9 +93,9 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
           {listing.shopName && <span>{listing.shopName}</span>}
           {listing.createdAtEtsy && (
-            <span className="flex items-center gap-1 font-mono text-[11px]" title="Tanggal listing dibuat di Etsy">
-              <Calendar className="size-3" />
-              {listing.createdAtEtsy.slice(0, 10)}
+            <span className="flex items-center gap-1 text-[11px]" title="Tanggal listing dibuat di Etsy">
+              <Calendar className="size-3 shrink-0" />
+              <span>{formatDateIndo(listing.createdAtEtsy)}</span>
             </span>
           )}
         </div>

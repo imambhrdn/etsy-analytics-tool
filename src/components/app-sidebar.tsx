@@ -12,24 +12,36 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
+  SidebarRail,
 } from "@/components/ui/sidebar";
 import { NAV_GROUPS, APP } from "@/lib/config/app";
 import { Badge } from "@/components/ui/badge";
+import { useLastSearch } from "@/lib/search-store";
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const lastProductSearch = useLastSearch();
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-md text-sm font-semibold">
-            EI
+        <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-md text-sm font-semibold">
+              EI
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+              <span className="truncate font-semibold">{APP.name}</span>
+              <span className="text-muted-foreground truncate text-xs">Research dashboard</span>
+            </div>
           </div>
-          <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="truncate font-semibold">{APP.name}</span>
-            <span className="text-muted-foreground truncate text-xs">Research dashboard</span>
-          </div>
+          {/* Tombol buka-tutup sidebar berada di dalam sidebar */}
+          <SidebarTrigger className="group-data-[collapsible=icon]:hidden" />
+        </div>
+        {/* Trigger saat mode icon kecil */}
+        <div className="hidden group-data-[collapsible=icon]:flex justify-center py-1">
+          <SidebarTrigger />
         </div>
       </SidebarHeader>
 
@@ -41,12 +53,19 @@ export function AppSidebar() {
               {group.items.map((item) => {
                 const isActive =
                   item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+
+                // Pertahankan query pencarian terakhir saat navigasi (Item 8)
+                const targetHref =
+                  item.href === "/products" && lastProductSearch
+                    ? `/products${lastProductSearch}`
+                    : item.href;
+
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       isActive={isActive}
                       tooltip={item.title}
-                      render={<Link href={item.href} />}
+                      render={<Link href={targetHref} />}
                     >
                       <item.icon />
                       <span>{item.title}</span>
@@ -72,6 +91,9 @@ export function AppSidebar() {
           {APP.timezone}
         </div>
       </SidebarFooter>
+
+      {/* Rail toggle di batas tepi sidebar */}
+      <SidebarRail />
     </Sidebar>
   );
 }

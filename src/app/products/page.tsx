@@ -7,7 +7,10 @@ import { EmptyState, ErrorState } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { ProductSearchForm } from "@/components/products/product-search-form";
 import { ProductCard } from "@/components/products/product-card";
+import { SearchPersistence } from "@/components/products/search-persistence";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { formatNumber } from "@/lib/utils";
 import { EtsyClient } from "@/lib/etsy/client";
 import { recordSearchRun, upsertListings } from "@/lib/db/listings-repo";
 import type { NormalizedListing } from "@/lib/etsy/types";
@@ -151,18 +154,20 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">
-          Menampilkan {((currentPage - 1) * PAGE_SIZE) + 1}–
-          {Math.min(currentPage * PAGE_SIZE, totalCount)} dari{" "}
-          <span className="font-semibold">{totalCount}</span> hasil
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2">
+          <span>
+            Menampilkan <strong className="text-foreground">{formatNumber((currentPage - 1) * PAGE_SIZE + 1)}–{formatNumber(Math.min(currentPage * PAGE_SIZE, totalCount))}</strong> dari <strong className="text-foreground">{formatNumber(totalCount)}</strong> hasil
+          </span>
           {quotaRemaining !== null && (
-            <> · sisa kuota harian: <span className="font-mono">{quotaRemaining}</span></>
+            <Badge variant="outline" className="text-[11px] font-mono">
+              Sisa kuota: {formatNumber(quotaRemaining)}
+            </Badge>
           )}
-        </span>
-        <span className="text-muted-foreground">
-          Halaman {currentPage} dari {Math.max(totalPages, 1)}
-        </span>
+        </div>
+        <div className="font-medium text-foreground">
+          Halaman {formatNumber(currentPage)} dari {formatNumber(Math.max(totalPages, 1))}
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -188,7 +193,7 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
           </Button>
 
           <span className="text-muted-foreground px-4 text-xs font-medium">
-            {currentPage} / {totalPages}
+            {formatNumber(currentPage)} / {formatNumber(totalPages)}
           </span>
 
           <Button
@@ -213,10 +218,11 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
 export default function ProductsPage(props: { searchParams: SearchParams }) {
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Product Explorer"
-        description="Pencarian katalog listing Etsy secara langsung melalui Etsy Open API v3."
-      />
+      <Suspense fallback={null}>
+        <SearchPersistence />
+      </Suspense>
+
+      <PageHeader title="Product Explorer" />
 
       <Suspense fallback={<Skeleton className="h-10 w-full" />}>
         <ProductSearchForm />
