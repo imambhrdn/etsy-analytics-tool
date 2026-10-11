@@ -1,5 +1,9 @@
 import { cn } from "@/lib/utils";
 
+/** Style judul segmen kanonik — dipakai seragam di seluruh halaman. */
+export const PAGE_TITLE_CLASS =
+  "text-sm font-semibold tracking-tight text-muted-foreground";
+
 type PageHeaderProps = {
   title: string;
   description?: string;
@@ -18,7 +22,7 @@ export function PageHeader({ title, description, actions, className }: PageHeade
       )}
     >
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <h1 className={PAGE_TITLE_CLASS}>{title}</h1>
         {description && <p className="text-muted-foreground text-sm">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}

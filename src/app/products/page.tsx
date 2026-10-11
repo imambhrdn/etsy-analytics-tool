@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { ChevronLeft, ChevronRight, Sparkles, Inbox } from "lucide-react";
 import { EmptyState, ErrorState } from "@/components/states";
+import { PAGE_TITLE_CLASS } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProductSearchForm } from "@/components/products/product-search-form";
@@ -147,7 +148,7 @@ async function ProductExplorer({ searchParams }: { searchParams: SearchParams })
 
       {/* Satu bar sticky ringkas: judul + filter + ringkasan hasil (tidak ikut tergulir) */}
       <div className="sticky top-0 z-20 -mx-4 -mt-4 space-y-2 border-b bg-background/95 px-4 pt-3 pb-2.5 shadow-xs backdrop-blur-md md:-mx-6 md:-mt-6 md:px-6 md:pt-4 md:pb-3">
-        <h1 className="text-sm font-semibold tracking-tight text-muted-foreground">Product Explorer</h1>
+        <h1 className={PAGE_TITLE_CLASS}>Product Explorer</h1>
 
         <Suspense fallback={<Skeleton className="h-9 w-full" />}>
           <ProductSearchForm />
