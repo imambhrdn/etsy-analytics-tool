@@ -22,6 +22,8 @@ export type EtsyRawShop = {
   listing_active_count?: number;
   transaction_sold_count?: number;
   review_count?: number;
+  shop_location_country_iso?: string | null;
+  shipping_from_country_iso?: string | null;
 };
 
 export type EtsyRawListing = {
@@ -69,6 +71,8 @@ export type NormalizedListing = {
   tags: string[];
   shopId: number | null;
   shopName: string | null;
+  shopUrl: string | null;
+  shopCountryCode: string | null;
   shopSoldCount: number | null;
   shopReviewCount: number | null;
   imageUrl: string | null;

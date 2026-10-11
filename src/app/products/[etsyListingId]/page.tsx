@@ -13,8 +13,9 @@ import {
   Star,
   Store,
 } from "lucide-react";
-import { formatNumber, formatDateIndo } from "@/lib/utils";
+import { formatNumber, formatDateIndo, getCountryFlag } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/ui/copy-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -134,10 +135,21 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
             {listing.etsyListingId}
           </Badge>
           {listing.shopName && (
-            <Badge variant="secondary" className="gap-1 text-xs">
-              <Store className="size-3" />
-              {listing.shopName}
-            </Badge>
+            <a
+              href={listing.shopUrl || `https://www.etsy.com/shop/${listing.shopName}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`Kunjungi toko ${listing.shopName} di Etsy`}
+            >
+              <Badge variant="secondary" className="gap-1.5 text-xs hover:bg-secondary/80 cursor-pointer transition-colors">
+                {listing.shopCountryCode && (
+                  <span className="text-sm shrink-0 leading-none">{getCountryFlag(listing.shopCountryCode)}</span>
+                )}
+                <Store className="size-3" />
+                <span>{listing.shopName}</span>
+                <ExternalLink className="size-2.5 opacity-60 ml-0.5" />
+              </Badge>
+            </a>
           )}
           {listing.listingType === "download" ? (
             <Badge className="bg-sky-600/90 text-white text-xs font-medium">
@@ -164,8 +176,9 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
           {/* Deskripsi */}
           {listing.description && (
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between gap-2">
                 <CardTitle className="text-base">Deskripsi Produk</CardTitle>
+                <CopyButton text={listing.description} label="Salin Deskripsi" />
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground whitespace-pre-line text-sm leading-relaxed">
@@ -333,11 +346,12 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
           {/* Tags */}
           {listing.tags.length > 0 && (
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between gap-2">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Tag className="size-4" />
                   Tags ({listing.tags.length})
                 </CardTitle>
+                <CopyButton text={listing.tags.join(", ")} label="Salin Semua Tag" />
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-1.5">

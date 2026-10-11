@@ -35,9 +35,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <AppSidebar />
             </Suspense>
             <SidebarInset>
-              <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
-                <span className="text-muted-foreground text-xs font-medium">{APP.name}</span>
-              </header>
               <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">{children}</div>
             </SidebarInset>
           </SidebarProvider>

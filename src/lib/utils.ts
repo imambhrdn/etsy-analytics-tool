@@ -26,3 +26,15 @@ export function formatDateIndo(dateStr: string | null | undefined): string {
     return dateStr;
   }
 }
+
+/**
+ * Mengubah kode negara 2-huruf ISO (mis. US, ID, GB) menjadi bendera emoji (🇺🇸, 🇮🇩, 🇬🇧).
+ */
+export function getCountryFlag(countryCode: string | null | undefined): string {
+  if (!countryCode || countryCode.length !== 2) return "";
+  const codePoints = countryCode
+    .toUpperCase()
+    .split("")
+    .map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}

@@ -34,6 +34,17 @@ export function normalizeListing(raw: EtsyRawListing): NormalizedListing {
     firstImg?.url_170x135 ||
     null;
 
+  const shopCountryCode =
+    raw.shop?.shop_location_country_iso ||
+    raw.shop?.shipping_from_country_iso ||
+    null;
+
+  const shopUrl =
+    raw.shop?.url ||
+    (raw.shop?.shop_name
+      ? `https://www.etsy.com/shop/${raw.shop.shop_name}`
+      : null);
+
   return {
     etsyListingId: raw.listing_id,
     title: raw.title || "Untitled Listing",
@@ -48,6 +59,8 @@ export function normalizeListing(raw: EtsyRawListing): NormalizedListing {
     tags: Array.isArray(raw.tags) ? raw.tags : [],
     shopId: typeof raw.shop_id === "number" ? raw.shop_id : null,
     shopName: raw.shop?.shop_name ?? null,
+    shopUrl,
+    shopCountryCode,
     shopSoldCount: typeof raw.shop?.transaction_sold_count === "number" ? raw.shop.transaction_sold_count : null,
     shopReviewCount: typeof raw.shop?.review_count === "number" ? raw.shop.review_count : null,
     imageUrl,

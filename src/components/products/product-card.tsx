@@ -7,7 +7,7 @@ import { Heart, ExternalLink, Lightbulb, Check, Calendar, ShoppingBag } from "lu
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatDateIndo } from "@/lib/utils";
+import { formatDateIndo, getCountryFlag } from "@/lib/utils";
 import type { NormalizedListing } from "@/lib/etsy/types";
 
 export function ProductCard({ listing }: { listing: NormalizedListing }) {
@@ -91,9 +91,22 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
           {listing.title}
         </Link>
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
-          {listing.shopName && <span>{listing.shopName}</span>}
+          {listing.shopName && (
+            <a
+              href={listing.shopUrl || `https://www.etsy.com/shop/${listing.shopName}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 font-medium hover:underline hover:text-foreground truncate max-w-[155px]"
+              title={`Buka toko ${listing.shopName} di Etsy`}
+            >
+              {listing.shopCountryCode && (
+                <span className="text-sm shrink-0 leading-none">{getCountryFlag(listing.shopCountryCode)}</span>
+              )}
+              <span className="truncate">{listing.shopName}</span>
+            </a>
+          )}
           {listing.createdAtEtsy && (
-            <span className="flex items-center gap-1 text-[11px]" title="Tanggal listing dibuat di Etsy">
+            <span className="flex items-center gap-1 text-[11px] shrink-0" title="Tanggal listing dibuat di Etsy">
               <Calendar className="size-3 shrink-0" />
               <span>{formatDateIndo(listing.createdAtEtsy)}</span>
             </span>

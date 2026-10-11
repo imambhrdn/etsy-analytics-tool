@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 export function BackButton({
   fallback = "/products",
   className,
-  label = "Kembali ke Product Explorer",
+  label = "Kembali",
 }: {
   fallback?: string;
   className?: string;

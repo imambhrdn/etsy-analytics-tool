@@ -159,7 +159,8 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+      {/* Sticky summary bar saat menggulir daftar produk */}
+      <div className="sticky top-[132px] z-10 -mx-4 -mt-2 flex flex-wrap items-center justify-between gap-2 border-b bg-background/95 px-4 py-2 text-xs text-muted-foreground shadow-2xs backdrop-blur-md md:-mx-6 md:px-6">
         <div className="flex flex-wrap items-center gap-2">
           <span>
             Menampilkan <strong className="text-foreground">{formatNumber((currentPage - 1) * PAGE_SIZE + 1)}–{formatNumber(Math.min(currentPage * PAGE_SIZE, totalCount))}</strong> dari <strong className="text-foreground">{formatNumber(totalCount)}</strong> hasil
@@ -227,11 +228,13 @@ export default function ProductsPage(props: { searchParams: SearchParams }) {
         <SearchPersistence />
       </Suspense>
 
-      <PageHeader title="Product Explorer" />
-
-      <Suspense fallback={<Skeleton className="h-10 w-full" />}>
-        <ProductSearchForm />
-      </Suspense>
+      {/* Bagian filter & header yang sticky (tidak ikut tergulir) */}
+      <div className="sticky top-0 z-20 -mx-4 -mt-4 space-y-3 border-b bg-background/95 px-4 pt-4 pb-3 shadow-xs backdrop-blur-md md:-mx-6 md:-mt-6 md:px-6 md:pt-6 md:pb-3.5">
+        <PageHeader title="Product Explorer" />
+        <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+          <ProductSearchForm />
+        </Suspense>
+      </div>
 
       <Suspense fallback={<ProductGridSkeleton />}>
         <ProductResults searchParams={props.searchParams} />
