@@ -5,8 +5,8 @@
 > mengerjakan, dan memperbarui status di akhir sesi. Jangan hapus riwayat.
 
 - **Sumber spesifikasi:** `etsy_intelligence_prd.md` (Versi 1.0)
-- **Versi taskboard:** 1.0
-- **Terakhir diperbarui:** `2026-10-11` oleh `ses-2026-10-11-a`
+- **Versi taskboard:** 1.1
+- **Terakhir diperbarui:** `2026-10-11` oleh `ses-2026-10-11-d` (UX polish Product Explorer)
 - **Zona waktu kerja:** Asia/Jakarta (WIB)
 
 ---
@@ -76,6 +76,7 @@ task aktif. **Kedaluwarsa default: 24 jam** — setelah itu boleh diambil alih
 | 0 | Repository inspection & plan | `IMPLEMENTATION_PLAN.md`, asumsi, blocker | `[x]` | `file:IMPLEMENTATION_PLAN.md` |
 | 1 | Foundation | Next.js/TS/Tailwind, layout sidebar, schema, `.env.example`, migrasi awal | `[x]` | `file:src/`, `migrations/`, `.env.example` |
 | 2 | Etsy API client & Product Explorer | adapter server-only, search, dedup/upsert, listing detail | `[x]` | `file:src/lib/etsy/`, `/products`, tests pass |
+| 2b | UX polish Product Explorer | galeri gambar+video, kurs IDR, filter, sticky bar, fix hydration | `[x]` | `commit:51282a6`, `32e02cb`, `b86e5fa` |
 | 3 | Daily discovery & snapshots | seeds, scheduled job, snapshot, Today's Etsy Trends | `[ ]` | |
 | 4 | Trend scoring & Idea Vault | delta 7/30/90, classification, score, Idea Vault, unit test | `[ ]` | |
 | 5 | Competitor Tracker & My Shop | tracking toko/listing, OAuth read-only | `[ ]` | |
@@ -126,6 +127,22 @@ Format kolom Bukti: `commit:<sha>` / `file:<path>` / `test:<nama>` / `note:<teks
 | P2-07 | Listing Detail `/products/[etsyListingId]` (PRD §7.3) | P0 | `[x]` | ses-2026-10-11-c | `file:src/app/products/[etsyListingId]/page.tsx`, gallery, snapshots |
 | P2-08 | Catat `search_runs` (query/filter/time) | P0 | `[x]` | ses-2026-10-11-c | `file:src/lib/db/listings-repo.ts` (terekam di DB tabel `search_runs`) |
 | P2-09 | Uji dedup/upsert berdasarkan Etsy listing ID | P0 | `[x]` | ses-2026-10-11-c | `test:normalizer-and-dedup.test.mjs` (merge-duplicate lolos) |
+
+#### Phase 2 — UX Polish lanjutan (sesi d/e/f)  `[x]`
+
+| ID | Task | Prio | Status | Owner | Bukti / Catatan |
+|:---|:-----|:----:|:------:|:------|:----------------|
+| P2-10 | Galeri semua gambar di **kartu** (auto-slide + tombol kiri/kanan) | P1 | `[x]` | ses-2026-10-11-d | `file:src/components/products/card-image-gallery.tsx`; `commit:51282a6` |
+| P2-11 | Tampilkan **video** listing di halaman detail | P1 | `[x]` | ses-2026-10-11-d | `getListingVideos` (publik); `commit:32e02cb` |
+| P2-12 | Konversi **semua harga → IDR** via API kurs harian | P1 | `[x]` | ses-2026-10-11-d | `file:src/lib/currency.ts` (open.er-api.com, cache 24 jam); `commit:51282a6` |
+| P2-13 | Format harga: tanpa desimal + pemisah ribuan titik | P1 | `[x]` | ses-2026-10-11-d | `formatIDR()` di `src/lib/utils.ts` |
+| P2-14 | Link nama toko → halaman toko Etsy + badge negara (teks) | P1 | `[x]` | ses-2026-10-11-d | `commit:b2f4b23`, `eaa62e8` |
+| P2-15 | Tombol salin (ikon) untuk deskripsi & tags | P2 | `[x]` | ses-2026-10-11-d | `file:src/components/ui/copy-button.tsx` |
+| P2-16 | Filter Digital vs Fisik + urutan A–Z/Z–A | P1 | `[x]` | ses-2026-10-11-d | `product-search-form.tsx`; `commit:a74a11e` |
+| P2-17 | Bar filter + ringkasan hasil **sticky** (tidak ikut scroll) | P1 | `[x]` | ses-2026-10-11-d | `products/page.tsx`; `commit:eaa62e8` |
+| P2-18 | Persistensi query pencarian antar-navigasi | P1 | `[x]` | ses-2026-10-11-d | `file:src/lib/search-store.ts`; `commit:a999f5b` |
+| P2-19 | **Fix hydration mismatch** (format tanggal/angka/negara deterministik) | P0 | `[x]` | ses-2026-10-11-d | `src/lib/utils.ts` (peta statis, bukan `Intl`); `commit:b86e5fa` |
+| P2-20 | Satukan style judul semua segmen (`PAGE_TITLE_CLASS`) | P2 | `[x]` | ses-2026-10-11-d | `file:src/components/page-header.tsx`; `commit:2262e0f` |
 
 ### Phase 3 — Daily Discovery & Snapshots  `[ ]`
 
@@ -220,15 +237,19 @@ Format kolom Bukti: `commit:<sha>` / `file:<path>` / `test:<nama>` / `note:<teks
 | D7 | 2026-10-11 | ses-2026-10-11-a | Snapshot append-only + dedup key | Update in-place (kehilangan histori) |
 | D8 | 2026-10-11 | ses-2026-10-11-a | AI Research Brief ditunda (P2, Phase 6) | AI di MVP inti (opsional per PRD §3.2) |
 | D9 | 2026-10-11 | ses-2026-10-11-b | Pertahankan `cacheComponents: true` bawaan scaffold Next 16 | Mematikannya (harus diuji ulang; dashboard dinamis tetap perlu `<Suspense>` untuk data runtime) |
+| D10 | 2026-10-11 | ses-2026-10-11-d | Format tanggal/angka/nama-negara **deterministik statis** (bukan `Intl`) | `Intl.*` (menyebabkan hydration mismatch server vs client) |
+| D11 | 2026-10-11 | ses-2026-10-11-d | Kurs IDR dari `open.er-api.com` (base USD), cache 24 jam | frankfurter.app (mata uang terbatas); tanpa konversi (pengguna minta IDR) |
+| D12 | 2026-10-11 | ses-2026-10-11-d | Harga tampil IDR (tanpa desimal); mata uang asli sbg referensi kecil | Tampil multi-mata uang campur (sulit dibandingkan) |
 
 ### Blocker
 | # | Tanggal | Sesi | Blocker | Dampak | Status |
 |:--|:--------|:-----|:--------|:-------|:-------|
-| B1 | 2026-10-11 | ses-2026-10-11-a | `ETSY_API_KEY` belum ada | Tak bisa data live; Phase 2 uji dgn mock | Open (tak blokir Phase 1) |
-| B2 | 2026-10-11 | ses-2026-10-11-a | Project Supabase belum ada | Migrasi belum bisa dijalankan nyata | Open (tak blokir Phase 1) |
+| B1 | 2026-10-11 | ses-2026-10-11-a | `ETSY_API_KEY` belum ada | Tak bisa data live; Phase 2 uji dgn mock | **RESOLVED** (key diisi 2026-10-11; data live terbukti) |
+| B2 | 2026-10-11 | ses-2026-10-11-a | Project Supabase belum ada | Migrasi belum bisa dijalankan nyata | **RESOLVED** (project + 12 tabel ter-migrasi via pooler) |
 | B3 | 2026-10-11 | ses-2026-10-11-a | Docker tidak terpasang | n8n self-host lokal tertunda | Open (Phase 6) |
 | B4 | 2026-10-11 | ses-2026-10-11-a | OAuth redirect butuh HTTPS publik | My Shop OAuth tak bisa dites lokal murni | Open (Phase 5; pakai dev tunnel) |
-| B5 | 2026-10-11 | ses-2026-10-11-a | Access level app Etsy belum diketahui | Bisa batasi endpoint | Open (verifikasi Phase 2/5) |
+| B5 | 2026-10-11 | ses-2026-10-11-a | Access level app Etsy belum diketahui | Bisa batasi endpoint | Open — endpoint publik (listings/active, batch, videos) **terbukti jalan**; scope OAuth diverifikasi Phase 5 |
+| B6 | 2026-10-11 | ses-2026-10-11-d | Kurs IDR bergantung API pihak ketiga (`open.er-api.com`) | Bila API down, harga tampil mata uang asli | Open (fallback aman sudah diterapkan) |
 
 ---
 
@@ -241,12 +262,16 @@ Format kolom Bukti: `commit:<sha>` / `file:<path>` / `test:<nama>` / `note:<teks
 | 0 | 5 / 5 | 100% |
 | 1 | 8 / 8 | 100% |
 | 2 | 9 / 9 | 100% |
+| 2b | 11 / 11 (UX polish) | 100% |
 | 3 | 0 / 8 | 0% |
 | 4 | 0 / 8 | 0% |
 | 5 | 0 / 8 | 0% |
 | 6 | 0 / 8 | 0% |
 | 7 | 0 / 6 | 0% |
-| **Total** | **22 / 60** | **37%** |
+| **Total** | **33 / 71** | **46%** |
+
+> Catatan: Phase 2b adalah rangkaian polish UX atas permintaan pengguna di atas fondasi Phase 2
+> (galeri gambar/video, kurs IDR, filter, sticky bar, fix hydration). Tidak mengubah lingkup PRD.
 
 ---
 
@@ -270,6 +295,59 @@ Format kolom Bukti: `commit:<sha>` / `file:<path>` / `test:<nama>` / `note:<teks
 ### Log
 
 <!-- Tambahkan entri baru di bawah baris ini -->
+
+### [2026-10-11] session:ses-2026-10-11-d
+- Fase: Phase 2 (UX polish lanjutan — P2-10..P2-20)
+- Task diklaim: P2-10, P2-11, P2-12, P2-13, P2-14, P2-15, P2-16, P2-17, P2-18, P2-19, P2-20
+- Task selesai: P2-10..P2-20 → bukti: `commit:32e02cb`, `51282a6`, `b86e5fa`, `eaa62e8`, `b2f4b23`, `a74a11e`, `2262e0f`; `file:src/lib/currency.ts`, `card-image-gallery.tsx`, `search-store.ts`, `copy-button.tsx`
+- Task diblokir: —
+- Perintah dijalankan: `npx next typegen` + `npx tsc --noEmit` (OK), `npm run lint` (OK), `npm run build` (exit 0), `npm test` (3 unit test normalizer + integration dedup/upsert lolos), `npm run dev` + uji HTTP live (kartu multi-gambar, video di detail, harga IDR `Rp 49.963`, tombol nav galeri, tanpa badge foto).
+- Fase berikutnya: **Phase 3 (Daily Discovery & Snapshots)** — mulai besok.
+- Catatan/asumsi baru:
+  - **Endpoint Etsy terverifikasi publik** (tanpa OAuth): `findAllListingsActive`, `getListingsByListingIds` (batch, `includes=Images,Videos,Shop`), `getListingVideos`. → lihat bagian 5 (D1).
+  - Video listing tersedia & terbukti (11/20 listing). Field: `video_id, video_url, thumbnail_url, video_state`.
+  - **Hydration mismatch diperbaiki**: semua formatting (tanggal/angka/nama negara) kini deterministik statis, bukan `Intl.*`.
+  - Kurs IDR dari `open.er-api.com` (cache 24 jam) — Blocker B6 (ketergantungan pihak ketiga, fallback aman).
+  - `npm test` menambah kasus uji: multi-image & video (video `deleted` difilter).
+
+---
+
+## 7b. RENCANA SESI BERIKUTNYA (untuk sesi besok)
+
+> Ringkasan agar sesi berikutnya langsung paham konteks tanpa membaca seluruh log.
+
+**Status:** Phase 0, 1, 2 (+ polish UX) **SELESAI**. Product Explorer **sudah baik & stabil** menurut pengguna.
+
+**Fokus berikutnya — Phase 3: Daily Discovery & Snapshots (`P3-01..P3-08`)**
+
+| Langkah | Yang harus dibuat |
+|:--------|:------------------|
+| 1 | `discovery_seeds` — seed keyword configurable dari Settings (tabel sudah ada) |
+| 2 | Job discovery: ambil listing per keyword, simpan snapshot (idempotent), catat `job_runs` |
+| 3 | Manual trigger (server action / API route) — n8n belum ada (B3) |
+| 4 | Today's Etsy Trends `/` — baca `daily_trend_results`, empty/stale/error state |
+| 5 | Partial success: 1 keyword gagal ≠ hapus hasil keyword lain |
+| 6 | Tampilkan timestamp sinkronisasi + data coverage/sufficiency |
+
+**Prasyarat yang sudah siap:**
+- `ETSY_API_KEY` + `ETSY_SHARED_SECRET` ✅ (live terbukti)
+- Supabase + 12 tabel ter-migrasi ✅ (`npm run db:migrate`)
+- Adapter Etsy server-only + normalizer ✅ (`src/lib/etsy/`)
+- Repo helper DB ✅ (`src/lib/db/listings-repo.ts` — `upsertListings`, `recordSearchRun`)
+- Pola aman: `connection()` + `<Suspense>` (Next 16), format deterministik, sticky bar.
+
+**Yang perlu disiapkan/diputuskan sesi besok:**
+- Seed keyword awal (PRD §8.1 punya 12 contoh: personalized gift, wedding template, dst.).
+- Batas item per keyword & frekuensi (default: harian 02.00 WIB).
+- Konfirmasi format klasifikasi (`emerging`/`accelerating`/`established`) akan diisi Phase 4.
+
+**Blocker aktif:** B3 (Docker/n8n — ditunda ke Phase 6), B4 (HTTPS OAuth — Phase 5), B5 (scope OAuth — Phase 5), B6 (API kurs pihak ketiga — ada fallback).
+
+**Catatan teknis penting (jangan diulang salah):**
+- Format tanggal/angka **harus** pakai helper statis di `src/lib/utils.ts` (jangan `Intl.*` → hydration mismatch).
+- Halaman dinamis: `await connection()` + bungkus `<Suspense>`.
+- shadcn v4 = base-ui: pakai prop `render`, bukan `asChild`.
+- Harga tampil IDR via `formatIDR()`; mata uang asli sbg referensi.
 
 ### [2026-10-11] session:ses-2026-10-11-c
 - Fase: Phase 2
@@ -322,10 +400,10 @@ Tandai `[x]` hanya setelah terbukti. Ini adalah syarat "MVP selesai".
 - [ ] Data demo tidak tercampur data live
 
 ### Product Explorer & Historical Tracking
-- [ ] Pencarian validasi input, pagination, tanpa duplikat
-- [ ] Save idea membuat record persisten
-- [ ] Detail produk menampilkan snapshot jika ada
-- [ ] Snapshot baru tidak menimpa snapshot lama
+- [x] Pencarian validasi input, pagination, tanpa duplikat
+- [x] Save idea membuat record persisten
+- [x] Detail produk menampilkan snapshot jika ada
+- [x] Snapshot baru tidak menimpa snapshot lama
 - [ ] Delta hanya dihitung dengan baseline valid; tanpa ÷0
 - [ ] Data hilang tidak dianggap nol tanpa aturan
 
@@ -368,3 +446,4 @@ Tandai `[x]` hanya setelah terbukti. Ini adalah syarat "MVP selesai".
 | Versi | Tanggal | Perubahan |
 |:------|:--------|:----------|
 | 1.0 | — | Taskboard awal dibuat dari PRD v1.0 (8 fase, 60 task, AC, session log). |
+| 1.1 | 2026-10-11 | Phase 0/1/2 selesai + 11 task UX polish (P2-10..P2-20); B1/B2 resolved; D10–D12; bagian 7b "Rencana Sesi Berikutnya"; progress 33/71. |
