@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Heart, ExternalLink, Lightbulb, Check, Calendar, ShoppingBag } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CardImageGallery } from "@/components/products/card-image-gallery";
 import { formatDateIndo, getCountryName } from "@/lib/utils";
 import type { NormalizedListing } from "@/lib/etsy/types";
 
@@ -43,19 +43,7 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
     <Card className="flex flex-col gap-0 overflow-hidden rounded-lg border py-0 ring-0">
       {/* Gambar menempel penuh ke tepi atas card */}
       <div className="bg-muted relative aspect-4/3 w-full shrink-0 overflow-hidden">
-        {listing.imageUrl ? (
-          <Image
-            src={listing.imageUrl}
-            alt={listing.title}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            className="object-cover transition-transform duration-300 hover:scale-105"
-          />
-        ) : (
-          <div className="text-muted-foreground flex size-full items-center justify-center text-xs">
-            Tidak ada foto
-          </div>
-        )}
+        <CardImageGallery urls={listing.imageUrls} title={listing.title} />
 
         {/* Kiri atas: Tipe + Nama Negara (teks putih) */}
         <div className="absolute top-1.5 left-1.5 flex flex-col items-start gap-1">

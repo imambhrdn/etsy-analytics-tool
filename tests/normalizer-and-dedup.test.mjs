@@ -59,6 +59,16 @@ function normalizeListing(raw) {
     firstImg?.url_170x135 ||
     null;
 
+  const imageUrls = Array.isArray(raw.images)
+    ? raw.images
+        .map((img) => img.url_570xN || img.url_fullxfull || img.url_170x135)
+        .filter((u) => Boolean(u))
+    : [];
+
+  const videos = Array.isArray(raw.videos)
+    ? raw.videos.filter((v) => v.video_url && v.video_state !== "deleted")
+    : [];
+
   return {
     etsyListingId: raw.listing_id,
     title: raw.title || "Untitled Listing",
@@ -74,6 +84,8 @@ function normalizeListing(raw) {
     shopId: typeof raw.shop_id === "number" ? raw.shop_id : null,
     shopName: raw.shop?.shop_name ?? null,
     imageUrl,
+    imageUrls,
+    videos,
     createdAtEtsy,
     updatedAtEtsy,
   };
@@ -98,6 +110,8 @@ function normalizeListing(raw) {
   assert.equal(res.numFavorers, 42);
   assert.equal(res.imageUrl, "https://example.com/img.jpg");
   assert.equal(res.tags.length, 2);
+  assert.equal(res.imageUrls.length, 1);
+  assert.deepEqual(res.videos, []);
   console.log("  [pass] normal input listing");
 }
 
@@ -114,7 +128,31 @@ function normalizeListing(raw) {
   assert.equal(res.numFavorers, null);
   assert.equal(res.imageUrl, null);
   assert.deepEqual(res.tags, []);
+  assert.deepEqual(res.imageUrls, []);
+  assert.deepEqual(res.videos, []);
   console.log("  [pass] edge case divisor nol & missing fields");
+}
+
+// Test case 3: banyak gambar + video (gambar & video ditampilkan semua)
+{
+  const raw = {
+    listing_id: 77777,
+    price: { amount: 1000, divisor: 100, currency_code: "USD" },
+    images: [
+      { listing_image_id: 1, url_570xN: "https://i.etsystatic.com/a.jpg" },
+      { listing_image_id: 2, url_570xN: "https://i.etsystatic.com/b.jpg" },
+      { listing_image_id: 3, url_570xN: "https://i.etsystatic.com/c.jpg" },
+    ],
+    videos: [
+      { video_id: 1, video_url: "https://v.etsystatic.com/v.mp4", video_state: "active" },
+      { video_id: 2, video_url: "https://v.etsystatic.com/deleted.mp4", video_state: "deleted" },
+    ],
+  };
+  const res = normalizeListing(raw);
+  assert.equal(res.imageUrls.length, 3, "harus mengambil semua 3 gambar");
+  assert.equal(res.videos.length, 1, "video deleted harus difilter");
+  assert.equal(res.videos[0].video_url, "https://v.etsystatic.com/v.mp4");
+  console.log("  [pass] multi-image & video (deleted difilter)");
 }
 
 // ---------------------------------------------------------------------------

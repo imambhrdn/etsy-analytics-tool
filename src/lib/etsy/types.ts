@@ -13,6 +13,15 @@ export type EtsyListingImage = {
   alt_text?: string | null;
 };
 
+export type EtsyListingVideo = {
+  video_id: number;
+  height?: number;
+  width?: number;
+  thumbnail_url?: string;
+  video_url?: string;
+  video_state?: string;
+};
+
 export type EtsyRawShop = {
   shop_id: number;
   shop_name: string;
@@ -43,6 +52,7 @@ export type EtsyRawListing = {
   updated_timestamp?: number;
   price: EtsyMoney;
   images?: EtsyListingImage[];
+  videos?: EtsyListingVideo[];
   shop?: EtsyRawShop;
   [key: string]: unknown;
 };
@@ -55,6 +65,11 @@ export type EtsyActiveListingsResponse = {
 export type EtsyImagesResponse = {
   count: number;
   results: EtsyListingImage[];
+};
+
+export type EtsyVideosResponse = {
+  count: number;
+  results: EtsyListingVideo[];
 };
 
 export type NormalizedListing = {
@@ -76,6 +91,8 @@ export type NormalizedListing = {
   shopSoldCount: number | null;
   shopReviewCount: number | null;
   imageUrl: string | null;
+  imageUrls: string[];
+  videos: EtsyListingVideo[];
   createdAtEtsy: string | null;
   updatedAtEtsy: string | null;
   rawData: Record<string, unknown>;

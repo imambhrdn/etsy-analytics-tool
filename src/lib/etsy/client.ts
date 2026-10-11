@@ -4,7 +4,9 @@ import { normalizeListing } from "./normalizer";
 import type {
   EtsyActiveListingsResponse,
   EtsyImagesResponse,
+  EtsyVideosResponse,
   EtsyListingImage,
+  EtsyListingVideo,
   EtsyRawListing,
   EtsyRawShop,
   NormalizedListing,
@@ -162,24 +164,25 @@ export class EtsyClient {
 
     let rawListings = data.results || [];
 
-    // Ambil gambar & info toko sekaligus via batch endpoint (1 request efisien)
+    // Ambil gambar, video & info toko sekaligus via batch endpoint (1 request efisien)
     if (rawListings.length > 0) {
       try {
         const ids = rawListings.map((r) => r.listing_id);
-        const batchMap = await this.getListingsBatch(ids, "Images,Shop");
+        const batchMap = await this.getListingsBatch(ids, "Images,Videos,Shop");
         rawListings = rawListings.map((item) => {
           const enriched = batchMap.get(item.listing_id);
           if (enriched) {
             return {
               ...item,
               images: enriched.images || item.images,
+              videos: enriched.videos || item.videos,
               shop: enriched.shop || item.shop,
             };
           }
           return item;
         });
       } catch (batchErr) {
-        console.warn("[EtsyClient] Gagal batch enrichment gambar:", batchErr);
+        console.warn("[EtsyClient] Gagal batch enrichment gambar/video:", batchErr);
       }
     }
 
@@ -220,19 +223,21 @@ export class EtsyClient {
   }
 
   /**
-   * Ambil detail listing tunggal beserta asosiasi Images & Shop (PRD §7.3).
+   * Ambil detail listing tunggal beserta asosiasi Images, Videos & Shop (PRD §7.3).
    */
   async getListing(listingId: number): Promise<{
     listing: NormalizedListing;
     images: EtsyListingImage[];
+    videos: EtsyListingVideo[];
     rateLimit: EtsyRateLimit;
   }> {
     const { data, rateLimit } = await this.request<EtsyRawListing>(
       `/listings/${listingId}`,
-      { includes: "Images,Shop" },
+      { includes: "Images,Videos,Shop" },
     );
 
     const images = Array.isArray(data.images) ? data.images : [];
+    const videos = Array.isArray(data.videos) ? data.videos : [];
     const listing = normalizeListing(data);
 
     // Ambil gambar utama jika listing belum punya
@@ -240,7 +245,7 @@ export class EtsyClient {
       listing.imageUrl = images[0].url_570xN;
     }
 
-    return { listing, images, rateLimit };
+    return { listing, images, videos, rateLimit };
   }
 
   /**
@@ -249,6 +254,16 @@ export class EtsyClient {
   async getListingImages(listingId: number): Promise<EtsyListingImage[]> {
     const { data } = await this.request<EtsyImagesResponse>(
       `/listings/${listingId}/images`,
+    );
+    return data.results || [];
+  }
+
+  /**
+   * Ambil daftar video listing (endpoint publik, PRD §7.3).
+   */
+  async getListingVideos(listingId: number): Promise<EtsyListingVideo[]> {
+    const { data } = await this.request<EtsyVideosResponse>(
+      `/listings/${listingId}/videos`,
     );
     return data.results || [];
   }

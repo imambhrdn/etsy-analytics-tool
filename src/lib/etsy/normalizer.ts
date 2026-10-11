@@ -34,6 +34,18 @@ export function normalizeListing(raw: EtsyRawListing): NormalizedListing {
     firstImg?.url_170x135 ||
     null;
 
+  // Semua gambar (untuk galeri di kartu & detail)
+  const imageUrls = Array.isArray(raw.images)
+    ? raw.images
+        .map((img) => img.url_570xN || img.url_fullxfull || img.url_170x135)
+        .filter((u): u is string => Boolean(u))
+    : [];
+
+  // Video listing (hanya yang aktif)
+  const videos = Array.isArray(raw.videos)
+    ? raw.videos.filter((v) => v.video_url && v.video_state !== "deleted")
+    : [];
+
   const shopCountryCode =
     raw.shop?.shop_location_country_iso ||
     raw.shop?.shipping_from_country_iso ||
@@ -64,6 +76,8 @@ export function normalizeListing(raw: EtsyRawListing): NormalizedListing {
     shopSoldCount: typeof raw.shop?.transaction_sold_count === "number" ? raw.shop.transaction_sold_count : null,
     shopReviewCount: typeof raw.shop?.review_count === "number" ? raw.shop.review_count : null,
     imageUrl,
+    imageUrls,
+    videos,
     createdAtEtsy,
     updatedAtEtsy,
     rawData: raw as Record<string, unknown>,

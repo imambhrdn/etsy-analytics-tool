@@ -67,6 +67,12 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
     url_170x135?: string;
     alt_text?: string | null;
   }> = [];
+  let videos: Array<{
+    video_id: number;
+    video_url?: string;
+    thumbnail_url?: string;
+    video_state?: string;
+  }> = [];
   let snapshots: Array<{
     id: number;
     captured_at: string;
@@ -83,6 +89,7 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
     const data = await client.getListing(listingId);
     listing = data.listing;
     images = data.images;
+    videos = data.videos;
 
     try {
       await upsertListings([listing]);
@@ -181,6 +188,7 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
           {/* Galeri Seluruh Foto Listing (Interactive Thumbnail Switching) */}
           <ProductGallery
             images={images}
+            videos={videos}
             fallbackUrl={listing.imageUrl}
             title={listing.title}
           />

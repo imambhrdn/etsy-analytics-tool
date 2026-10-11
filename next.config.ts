@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "i.etsystatic.com",
       },
+      // Thumbnail video Etsy (dipakai next/image di galeri)
+      {
+        protocol: "https",
+        hostname: "v.etsystatic.com",
+      },
     ],
   },
   turbopack: {
