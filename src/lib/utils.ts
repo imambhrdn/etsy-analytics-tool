@@ -14,6 +14,44 @@ export function formatNumber(num: number | null | undefined): string {
 }
 
 /**
+ * Format nominal Rupiah: tanpa desimal, pemisah ribuan titik (mis. Rp 178.891).
+ * Deterministik (manual) agar identik di server dan client.
+ */
+export function formatIDR(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined || isNaN(amount)) return "—";
+  const rounded = Math.round(amount);
+  const s = Math.abs(rounded).toString();
+  const withDots = s.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${rounded < 0 ? "-" : ""}Rp ${withDots}`;
+}
+
+/**
+ * Konversi harga dari suatu mata uang ke IDR memakai peta kurs (base USD).
+ * Mengembalikan null bila kurs tidak tersedia.
+ */
+export function convertToIDR(
+  amount: number | null | undefined,
+  currencyCode: string | null | undefined,
+  rates: Record<string, number> | null | undefined,
+): number | null {
+  if (amount === null || amount === undefined || isNaN(amount)) return null;
+  if (!rates) return null;
+  const code = (currencyCode || "USD").toUpperCase();
+
+  // rates berbasis USD: 1 USD = rates[X] unit X
+  const idrPerUsd = rates.IDR;
+  if (!idrPerUsd) return null;
+
+  if (code === "IDR") return amount;
+  const rateOfCode = rates[code];
+  if (!rateOfCode) return null;
+
+  // amount (dalam code) -> USD -> IDR
+  const usd = amount / rateOfCode;
+  return usd * idrPerUsd;
+}
+
+/**
  * Format string tanggal (ISO/epoch) ke format tanggal nama bulan dan tahun Indonesia (mis. 15 Oktober 2024).
  * Memakai peta bulan statis agar deterministik (menghindari hydration mismatch antar-ICU).
  */

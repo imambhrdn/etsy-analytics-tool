@@ -11,6 +11,7 @@ import { ProductCard } from "@/components/products/product-card";
 import { SearchPersistence } from "@/components/products/search-persistence";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatNumber } from "@/lib/utils";
+import { getExchangeRates } from "@/lib/currency";
 import { EtsyClient } from "@/lib/etsy/client";
 import { recordSearchRun, upsertListings } from "@/lib/db/listings-repo";
 import type { NormalizedListing } from "@/lib/etsy/types";
@@ -66,6 +67,10 @@ async function ProductExplorer({ searchParams }: { searchParams: SearchParams })
   const listingType = params.listing_type || undefined;
   const sortOn = params.sort_on ?? "created";
   const sortOrder = params.sort_order ?? "desc";
+
+  // Kurs harian (cache 24 jam) untuk konversi harga ke IDR.
+  const fx = await getExchangeRates();
+  const rates = fx?.rates ?? null;
 
   let listings: NormalizedListing[] = [];
   let totalCount = 0;
@@ -196,7 +201,7 @@ async function ProductExplorer({ searchParams }: { searchParams: SearchParams })
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {listings.map((listing) => (
-              <ProductCard key={listing.etsyListingId} listing={listing} />
+              <ProductCard key={listing.etsyListingId} listing={listing} rates={rates} />
             ))}
           </div>
 

@@ -13,7 +13,8 @@ import {
   Star,
   Store,
 } from "lucide-react";
-import { formatNumber, formatDateIndo } from "@/lib/utils";
+import { formatNumber, formatDateIndo, formatIDR, convertToIDR } from "@/lib/utils";
+import { getExchangeRates } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Badge } from "@/components/ui/badge";
@@ -117,6 +118,11 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
   }
 
   const hasEnoughHistory = snapshots.length >= 2;
+
+  // Kurs harian untuk konversi harga ke IDR.
+  const fx = await getExchangeRates();
+  const rates = fx?.rates ?? null;
+  const priceIDR = convertToIDR(listing.price, listing.currencyCode, rates);
 
   return (
     <div className="space-y-6">
@@ -254,7 +260,16 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
                           {formatDateIndo(snap.captured_at)}
                         </TableCell>
                         <TableCell className="font-medium text-xs">
-                          {snap.currency_code} {snap.price?.toFixed(2) ?? "—"}
+                          {(() => {
+                            const snapIDR = convertToIDR(
+                              snap.price,
+                              snap.currency_code,
+                              rates,
+                            );
+                            return snapIDR !== null
+                              ? formatIDR(snapIDR)
+                              : `${snap.currency_code ?? ""} ${snap.price?.toFixed(2) ?? "—"}`;
+                          })()}
                         </TableCell>
                         <TableCell className="text-xs">
                           {formatNumber(snap.num_favorers)}
@@ -282,8 +297,15 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
               <div>
                 <span className="text-muted-foreground text-xs">Harga Saat Ini</span>
                 <p className="text-2xl font-bold">
-                  {listing.currencyCode} {listing.price.toFixed(2)}
+                  {priceIDR !== null
+                    ? formatIDR(priceIDR)
+                    : `${listing.currencyCode} ${listing.price.toFixed(2)}`}
                 </p>
+                {priceIDR !== null && listing.currencyCode !== "IDR" && (
+                  <p className="text-muted-foreground text-xs">
+                    ≈ {listing.currencyCode} {listing.price.toFixed(2)}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-2 border-t pt-3 text-xs">

@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 /**
  * Galeri gambar ringkas untuk kartu produk.
- * Menampilkan semua gambar secara berurutan (auto-slide saat hover),
- * dengan indikator titik. Jika hanya 1 gambar, tampil statis.
+ * Menampilkan semua gambar (auto-slide saat hover) + tombol navigasi kiri/kanan.
  */
 export function CardImageGallery({
   urls,
@@ -33,7 +33,6 @@ export function CardImageGallery({
       clearInterval(timer.current);
       timer.current = null;
     }
-    setIndex(0);
   };
 
   useEffect(() => {
@@ -50,9 +49,15 @@ export function CardImageGallery({
     );
   }
 
+  const go = (dir: number) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIndex((i) => (i + dir + list.length) % list.length);
+  };
+
   return (
     <div
-      className={`relative size-full ${className || ""}`}
+      className={`group/gallery relative size-full ${className || ""}`}
       onMouseEnter={start}
       onMouseLeave={stop}
     >
@@ -70,25 +75,38 @@ export function CardImageGallery({
         />
       ))}
 
-      {/* Indikator jumlah gambar */}
       {list.length > 1 && (
-        <div className="absolute bottom-1.5 left-1/2 flex -translate-x-1/2 gap-1">
-          {list.map((_, i) => (
-            <span
-              key={i}
-              className={`size-1.5 rounded-full transition-colors ${
-                i === index ? "bg-white" : "bg-white/50"
-              }`}
-            />
-          ))}
-        </div>
-      )}
+        <>
+          {/* Tombol navigasi kiri/kanan */}
+          <button
+            type="button"
+            onClick={go(-1)}
+            aria-label="Foto sebelumnya"
+            className="absolute top-1/2 left-1 flex size-6 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover/gallery:opacity-100"
+          >
+            <ChevronLeft className="size-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={go(1)}
+            aria-label="Foto berikutnya"
+            className="absolute top-1/2 right-1 flex size-6 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity hover:bg-black/70 group-hover/gallery:opacity-100"
+          >
+            <ChevronRight className="size-3.5" />
+          </button>
 
-      {/* Badge jumlah foto */}
-      {list.length > 1 && (
-        <span className="absolute bottom-1.5 right-1.5 rounded bg-black/60 px-1 text-[9px] text-white">
-          {list.length} foto
-        </span>
+          {/* Indikator titik */}
+          <div className="absolute bottom-1.5 left-1/2 flex -translate-x-1/2 gap-1">
+            {list.map((_, i) => (
+              <span
+                key={i}
+                className={`size-1.5 rounded-full transition-colors ${
+                  i === index ? "bg-white" : "bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

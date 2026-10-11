@@ -7,12 +7,20 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardImageGallery } from "@/components/products/card-image-gallery";
-import { formatDateIndo, getCountryName } from "@/lib/utils";
+import { formatDateIndo, getCountryName, formatIDR, convertToIDR } from "@/lib/utils";
 import type { NormalizedListing } from "@/lib/etsy/types";
 
-export function ProductCard({ listing }: { listing: NormalizedListing }) {
+export function ProductCard({
+  listing,
+  rates,
+}: {
+  listing: NormalizedListing;
+  rates?: Record<string, number> | null;
+}) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const idr = convertToIDR(listing.price, listing.currencyCode, rates);
 
   const handleSaveIdea = async () => {
     if (saved || saving) return;
@@ -106,7 +114,9 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
         )}
 
         <span className="text-base font-bold">
-          {listing.currencyCode} {listing.price.toFixed(2)}
+          {idr !== null
+            ? formatIDR(idr)
+            : `${listing.currencyCode} ${listing.price.toFixed(2)}`}
         </span>
 
         {listing.tags.length > 0 && (
