@@ -38,3 +38,16 @@ export function getCountryFlag(countryCode: string | null | undefined): string {
     .map((char) => 127397 + char.charCodeAt(0));
   return String.fromCodePoint(...codePoints);
 }
+
+/**
+ * Mengubah kode negara 2-huruf ISO menjadi nama negara teks bahasa Indonesia (mis. US -> Amerika Serikat, TR -> Turki).
+ */
+export function getCountryName(countryCode: string | null | undefined): string {
+  if (!countryCode || countryCode.length !== 2) return "";
+  try {
+    const dn = new Intl.DisplayNames(["id-ID", "en"], { type: "region" });
+    return dn.of(countryCode.toUpperCase()) || countryCode.toUpperCase();
+  } catch {
+    return countryCode.toUpperCase();
+  }
+}

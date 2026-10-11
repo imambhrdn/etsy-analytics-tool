@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 export function CopyButton({
   text,
   label = "Salin",
+  iconOnly = false,
   className,
 }: {
   text: string;
   label?: string;
+  iconOnly?: boolean;
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
@@ -22,7 +24,6 @@ export function CopyButton({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback jika clipboard permissions diblokir
       const textarea = document.createElement("textarea");
       textarea.value = text;
       document.body.appendChild(textarea);
@@ -38,21 +39,22 @@ export function CopyButton({
     <Button
       type="button"
       variant="outline"
-      size="sm"
+      size={iconOnly ? "icon-sm" : "sm"}
       onClick={handleCopy}
-      className={`h-7 px-2 text-xs gap-1.5 cursor-pointer ${className || ""}`}
-      title="Salin teks ke clipboard"
+      className={`cursor-pointer transition-colors ${
+        iconOnly ? "size-7" : "h-7 px-2 text-xs gap-1.5"
+      } ${className || ""}`}
+      title={copied ? "Tersalin!" : "Salin ke clipboard"}
     >
       {copied ? (
-        <>
-          <Check className="size-3 text-emerald-600" />
-          <span className="text-emerald-600 font-medium">Tersalin!</span>
-        </>
+        <Check className="size-3.5 text-emerald-600" />
       ) : (
-        <>
-          <Copy className="size-3 text-muted-foreground" />
-          <span>{label}</span>
-        </>
+        <Copy className="size-3.5 text-muted-foreground" />
+      )}
+      {!iconOnly && (
+        <span className={copied ? "text-emerald-600 font-medium" : ""}>
+          {copied ? "Tersalin!" : label}
+        </span>
       )}
     </Button>
   );

@@ -5,11 +5,11 @@ import { ChevronLeft, ChevronRight, Sparkles, Inbox } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState, ErrorState } from "@/components/states";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ProductSearchForm } from "@/components/products/product-search-form";
 import { ProductCard } from "@/components/products/product-card";
 import { SearchPersistence } from "@/components/products/search-persistence";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { formatNumber } from "@/lib/utils";
 import { EtsyClient } from "@/lib/etsy/client";
 import { recordSearchRun, upsertListings } from "@/lib/db/listings-repo";
@@ -30,10 +30,9 @@ const PAGE_SIZE = 36;
 function ProductGridSkeleton() {
   return (
     <div className="space-y-4">
-      <Skeleton className="h-4 w-48" />
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="space-y-2 rounded-lg border p-3">
+          <div key={i} className="space-y-2 rounded-md border p-3">
             <Skeleton className="aspect-4/3 w-full rounded" />
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-4 w-1/3" />
@@ -44,7 +43,20 @@ function ProductGridSkeleton() {
   );
 }
 
-async function ProductResults({ searchParams }: { searchParams: SearchParams }) {
+function ProductsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-3 border-b pb-3">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+      <ProductGridSkeleton />
+    </div>
+  );
+}
+
+async function ProductExplorer({ searchParams }: { searchParams: SearchParams }) {
   await connection();
   const params = await searchParams;
   const q = params.q?.trim() ?? "";
@@ -76,7 +88,6 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
         sortOrder,
       });
 
-      // Filter berdasarkan tipe listing jika dipilih
       const filtered = listingType
         ? data.results.filter((l) => l.listingType === listingType)
         : data.results;
@@ -97,7 +108,7 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
         });
         await upsertListings(data.results);
       } catch (dbErr) {
-        console.warn("[ProductsPage] Gagal menyimpan ke DB:", dbErr);
+        console.warn("[ProductExplorer] Gagal menyimpan ke DB:", dbErr);
       }
     } catch (err) {
       errorMsg = err instanceof Error ? err.message : "Gagal mengambil data dari Etsy API";
@@ -114,7 +125,8 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
     }
   }
 
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const totalPages = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1);
+  const hasResults = !errorMsg && q && listings.length > 0;
 
   function makePageUrl(newPage: number) {
     const p = new URLSearchParams();
@@ -128,94 +140,96 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
     return `/products?${p.toString()}`;
   }
 
-  if (errorMsg) {
-    return (
-      <ErrorState
-        title="Gagal memuat hasil pencarian"
-        description={errorMsg}
-      />
-    );
-  }
-
-  if (!q) {
-    return (
-      <EmptyState
-        icon={Sparkles}
-        title="Mulai Eksplorasi Produk"
-        description="Masukkan kata kunci pada kolom pencarian di atas untuk menemukan listing aktif dari Etsy. Hasil pencarian akan otomatis disimpan ke database untuk historis tracking."
-      />
-    );
-  }
-
-  if (listings.length === 0) {
-    return (
-      <EmptyState
-        icon={Inbox}
-        title="Tidak ada listing yang cocok"
-        description={`Pencarian untuk "${q}" tidak menghasilkan data. Coba gunakan kata kunci yang lebih umum atau sesuaikan filter harga.`}
-      />
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Sticky summary bar saat menggulir daftar produk */}
-      <div className="sticky top-[132px] z-10 -mx-4 -mt-2 flex flex-wrap items-center justify-between gap-2 border-b bg-background/95 px-4 py-2 text-xs text-muted-foreground shadow-2xs backdrop-blur-md md:-mx-6 md:px-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <span>
-            Menampilkan <strong className="text-foreground">{formatNumber((currentPage - 1) * PAGE_SIZE + 1)}–{formatNumber(Math.min(currentPage * PAGE_SIZE, totalCount))}</strong> dari <strong className="text-foreground">{formatNumber(totalCount)}</strong> hasil
-          </span>
-          {quotaRemaining !== null && (
-            <Badge variant="outline" className="text-[11px] font-mono">
-              Sisa kuota: {formatNumber(quotaRemaining)}
-            </Badge>
+      <Suspense fallback={null}>
+        <SearchPersistence />
+      </Suspense>
+
+      {/* Satu bar sticky: judul + filter + ringkasan hasil (tidak ikut tergulir) */}
+      <div className="sticky top-0 z-20 -mx-4 -mt-4 space-y-3 border-b bg-background/95 px-4 pt-4 pb-3 shadow-xs backdrop-blur-md md:-mx-6 md:-mt-6 md:px-6 md:pt-6 md:pb-3.5">
+        <PageHeader title="Product Explorer" />
+
+        <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+          <ProductSearchForm />
+        </Suspense>
+
+        {hasResults && (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-2.5 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2">
+              <span>
+                Menampilkan{" "}
+                <strong className="text-foreground">
+                  {formatNumber((currentPage - 1) * PAGE_SIZE + 1)}–
+                  {formatNumber(Math.min(currentPage * PAGE_SIZE, totalCount))}
+                </strong>{" "}
+                dari <strong className="text-foreground">{formatNumber(totalCount)}</strong> hasil
+              </span>
+              {quotaRemaining !== null && (
+                <Badge variant="outline" className="text-[11px] font-mono">
+                  Sisa kuota: {formatNumber(quotaRemaining)}
+                </Badge>
+              )}
+            </div>
+            <div className="font-medium text-foreground">
+              Halaman {formatNumber(currentPage)} dari {formatNumber(totalPages)}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {errorMsg ? (
+        <ErrorState title="Gagal memuat hasil pencarian" description={errorMsg} />
+      ) : !q ? (
+        <EmptyState
+          icon={Sparkles}
+          title="Mulai Eksplorasi Produk"
+          description="Masukkan kata kunci pada kolom pencarian di atas untuk menemukan listing aktif dari Etsy. Hasil pencarian akan otomatis disimpan ke database untuk historis tracking."
+        />
+      ) : listings.length === 0 ? (
+        <EmptyState
+          icon={Inbox}
+          title="Tidak ada listing yang cocok"
+          description={`Pencarian untuk "${q}" tidak menghasilkan data. Coba gunakan kata kunci yang lebih umum atau sesuaikan filter harga.`}
+        />
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {listings.map((listing) => (
+              <ProductCard key={listing.etsyListingId} listing={listing} />
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage <= 1}
+                render={currentPage > 1 ? <Link href={makePageUrl(currentPage - 1)} /> : undefined}
+              >
+                <ChevronLeft className="size-4" />
+                Sebelumnya
+              </Button>
+
+              <span className="text-muted-foreground px-4 text-xs font-medium">
+                {formatNumber(currentPage)} / {formatNumber(totalPages)}
+              </span>
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages}
+                render={
+                  currentPage < totalPages ? <Link href={makePageUrl(currentPage + 1)} /> : undefined
+                }
+              >
+                Berikutnya
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
           )}
-        </div>
-        <div className="font-medium text-foreground">
-          Halaman {formatNumber(currentPage)} dari {formatNumber(Math.max(totalPages, 1))}
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {listings.map((listing) => (
-          <ProductCard key={listing.etsyListingId} listing={listing} />
-        ))}
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage <= 1}
-            render={
-              currentPage > 1 ? (
-                <Link href={makePageUrl(currentPage - 1)} />
-              ) : undefined
-            }
-          >
-            <ChevronLeft className="size-4" />
-            Sebelumnya
-          </Button>
-
-          <span className="text-muted-foreground px-4 text-xs font-medium">
-            {formatNumber(currentPage)} / {formatNumber(totalPages)}
-          </span>
-
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage >= totalPages}
-            render={
-              currentPage < totalPages ? (
-                <Link href={makePageUrl(currentPage + 1)} />
-              ) : undefined
-            }
-          >
-            Berikutnya
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
+        </>
       )}
     </div>
   );
@@ -223,22 +237,8 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
 
 export default function ProductsPage(props: { searchParams: SearchParams }) {
   return (
-    <div className="space-y-6">
-      <Suspense fallback={null}>
-        <SearchPersistence />
-      </Suspense>
-
-      {/* Bagian filter & header yang sticky (tidak ikut tergulir) */}
-      <div className="sticky top-0 z-20 -mx-4 -mt-4 space-y-3 border-b bg-background/95 px-4 pt-4 pb-3 shadow-xs backdrop-blur-md md:-mx-6 md:-mt-6 md:px-6 md:pt-6 md:pb-3.5">
-        <PageHeader title="Product Explorer" />
-        <Suspense fallback={<Skeleton className="h-10 w-full" />}>
-          <ProductSearchForm />
-        </Suspense>
-      </div>
-
-      <Suspense fallback={<ProductGridSkeleton />}>
-        <ProductResults searchParams={props.searchParams} />
-      </Suspense>
-    </div>
+    <Suspense fallback={<ProductsSkeleton />}>
+      <ProductExplorer searchParams={props.searchParams} />
+    </Suspense>
   );
 }

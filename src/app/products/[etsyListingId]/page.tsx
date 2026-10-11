@@ -13,7 +13,7 @@ import {
   Star,
   Store,
 } from "lucide-react";
-import { formatNumber, formatDateIndo, getCountryFlag } from "@/lib/utils";
+import { formatNumber, formatDateIndo } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Badge } from "@/components/ui/badge";
@@ -113,7 +113,8 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Sticky top action bar: Kembali & Buka di Etsy tidak ikut ter-scroll */}
+      <div className="sticky top-0 z-30 -mx-4 -mt-4 mb-2 flex items-center justify-between border-b bg-background/95 px-4 py-2.5 shadow-2xs backdrop-blur-md md:-mx-6 md:-mt-6 md:px-6">
         <BackButton />
 
         <Button
@@ -142,9 +143,6 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
               title={`Kunjungi toko ${listing.shopName} di Etsy`}
             >
               <Badge variant="secondary" className="gap-1.5 text-xs hover:bg-secondary/80 cursor-pointer transition-colors">
-                {listing.shopCountryCode && (
-                  <span className="text-sm shrink-0 leading-none">{getCountryFlag(listing.shopCountryCode)}</span>
-                )}
                 <Store className="size-3" />
                 <span>{listing.shopName}</span>
                 <ExternalLink className="size-2.5 opacity-60 ml-0.5" />
@@ -158,6 +156,23 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
           ) : (
             <Badge variant="outline" className="text-xs font-medium">
               Produk Fisik
+            </Badge>
+          )}
+          {listing.state && (
+            <Badge
+              variant="outline"
+              className={`text-xs font-medium gap-1.5 ${
+                listing.state === "active"
+                  ? "text-emerald-600 border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20"
+                  : "text-amber-600 border-amber-500/30 bg-amber-50/50"
+              }`}
+            >
+              <span
+                className={`size-1.5 rounded-full ${
+                  listing.state === "active" ? "bg-emerald-500" : "bg-amber-500"
+                }`}
+              />
+              {listing.state === "active" ? "Aktif" : listing.state}
             </Badge>
           )}
         </div>
@@ -178,7 +193,7 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between gap-2">
                 <CardTitle className="text-base">Deskripsi Produk</CardTitle>
-                <CopyButton text={listing.description} label="Salin Deskripsi" />
+                <CopyButton text={listing.description} iconOnly />
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground whitespace-pre-line text-sm leading-relaxed">
@@ -266,27 +281,23 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 border-t pt-3 text-xs">
+              <div className="grid grid-cols-3 gap-2 border-t pt-3 text-xs">
                 <div>
-                  <span className="text-muted-foreground">Peminat (Favorit)</span>
-                  <p className="flex items-center gap-1 font-semibold">
+                  <span className="text-muted-foreground">Peminat</span>
+                  <p className="flex items-center gap-1 font-semibold mt-0.5">
                     <Heart className="size-3 fill-rose-500 text-rose-500" />
                     {listing.numFavorers ?? "—"}
                   </p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Stok Tersisa</span>
-                  <p className="font-semibold">{listing.quantity ?? "—"}</p>
+                  <span className="text-muted-foreground">Stok</span>
+                  <p className="font-semibold mt-0.5">{listing.quantity ?? "—"}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Tipe Listing</span>
-                  <p className="font-semibold">{listing.listingType || "Physical"}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Status</span>
-                  <Badge variant="outline" className="mt-0.5 text-[10px]">
-                    {listing.state}
-                  </Badge>
+                  <span className="text-muted-foreground">Tipe</span>
+                  <p className="font-semibold mt-0.5 capitalize">
+                    {listing.listingType === "download" ? "Digital" : "Fisik"}
+                  </p>
                 </div>
               </div>
 
@@ -351,7 +362,7 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
                   <Tag className="size-4" />
                   Tags ({listing.tags.length})
                 </CardTitle>
-                <CopyButton text={listing.tags.join(", ")} label="Salin Semua Tag" />
+                <CopyButton text={listing.tags.join(", ")} iconOnly />
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-1.5">

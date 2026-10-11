@@ -7,7 +7,7 @@ import { Heart, ExternalLink, Lightbulb, Check, Calendar, ShoppingBag } from "lu
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatDateIndo, getCountryFlag } from "@/lib/utils";
+import { formatDateIndo, getCountryName } from "@/lib/utils";
 import type { NormalizedListing } from "@/lib/etsy/types";
 
 export function ProductCard({ listing }: { listing: NormalizedListing }) {
@@ -40,8 +40,9 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
   };
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-all hover:shadow-md">
-      <div className="bg-muted relative aspect-4/3 w-full overflow-hidden">
+    <Card className="flex flex-col overflow-hidden rounded-md border transition-all hover:shadow-md">
+      {/* Gambar full ke atas dengan ujung melengkung halus mengikuti card */}
+      <div className="bg-muted relative aspect-4/3 w-full overflow-hidden rounded-t-md">
         {listing.imageUrl ? (
           <Image
             src={listing.imageUrl}
@@ -55,17 +56,30 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
             Tidak ada foto
           </div>
         )}
-        <div className="absolute top-2 left-2 flex gap-1">
+
+        {/* Pojok kiri atas: Tipe Produk & Nama Negara di bawahnya */}
+        <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
           {listing.listingType === "download" ? (
-            <Badge className="bg-sky-600/90 text-white text-[10px] shadow-xs backdrop-blur-xs">
+            <Badge className="bg-sky-600/95 text-white text-[10px] shadow-xs backdrop-blur-xs font-medium">
               Digital
             </Badge>
           ) : (
-            <Badge variant="secondary" className="bg-white/90 text-[10px] shadow-xs backdrop-blur-xs dark:bg-black/80">
+            <Badge variant="secondary" className="bg-white/95 text-[10px] shadow-xs backdrop-blur-xs font-medium dark:bg-black/85">
               Fisik
             </Badge>
           )}
+
+          {listing.shopCountryCode && (
+            <Badge
+              variant="outline"
+              className="bg-black/60 text-white border-0 text-[10px] px-1.5 py-0 backdrop-blur-xs font-normal"
+            >
+              {getCountryName(listing.shopCountryCode)}
+            </Badge>
+          )}
         </div>
+
+        {/* Pojok kanan atas: Favorit & Penjualan Toko */}
         <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
           {listing.numFavorers !== null && (
             <Badge variant="secondary" className="gap-1 bg-white/90 text-xs shadow-xs backdrop-blur-xs dark:bg-black/80">
@@ -82,48 +96,32 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
         </div>
       </div>
 
-      <CardHeader className="p-4 pb-2">
+      <CardHeader className="p-3.5 pb-1.5">
         <Link
           href={`/products/${listing.etsyListingId}`}
-          className="line-clamp-2 text-sm font-semibold hover:underline"
+          className="line-clamp-2 text-sm font-semibold hover:underline leading-snug"
           title={listing.title}
         >
           {listing.title}
         </Link>
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
-          {listing.shopName && (
-            <a
-              href={listing.shopUrl || `https://www.etsy.com/shop/${listing.shopName}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 font-medium hover:underline hover:text-foreground truncate max-w-[155px]"
-              title={`Buka toko ${listing.shopName} di Etsy`}
-            >
-              {listing.shopCountryCode && (
-                <span className="text-sm shrink-0 leading-none">{getCountryFlag(listing.shopCountryCode)}</span>
-              )}
-              <span className="truncate">{listing.shopName}</span>
-            </a>
-          )}
-          {listing.createdAtEtsy && (
-            <span className="flex items-center gap-1 text-[11px] shrink-0" title="Tanggal listing dibuat di Etsy">
-              <Calendar className="size-3 shrink-0" />
-              <span>{formatDateIndo(listing.createdAtEtsy)}</span>
-            </span>
-          )}
-        </div>
+        {listing.shopName && (
+          <a
+            href={listing.shopUrl || `https://www.etsy.com/shop/${listing.shopName}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:underline hover:text-foreground font-medium truncate pt-0.5"
+            title={`Buka toko ${listing.shopName} di Etsy`}
+          >
+            {listing.shopName}
+          </a>
+        )}
       </CardHeader>
 
-      <CardContent className="flex-1 p-4 pt-0">
-        <div className="my-2 flex items-baseline gap-1">
+      <CardContent className="flex-1 p-3.5 pt-0">
+        <div className="my-1.5">
           <span className="text-lg font-bold">
             {listing.currencyCode} {listing.price.toFixed(2)}
           </span>
-          {listing.quantity !== null && (
-            <span className="text-muted-foreground text-xs">
-              · stok: {listing.quantity}
-            </span>
-          )}
         </div>
 
         {listing.tags.length > 0 && (
@@ -140,9 +138,25 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
             )}
           </div>
         )}
+
+        {/* Tanggal upload di kiri dan Stok di kanan */}
+        <div className="mt-3 flex items-center justify-between border-t pt-2 text-[11px] text-muted-foreground">
+          {listing.createdAtEtsy ? (
+            <span className="flex items-center gap-1" title="Tanggal dibuat di Etsy">
+              <Calendar className="size-3 shrink-0" />
+              <span>{formatDateIndo(listing.createdAtEtsy)}</span>
+            </span>
+          ) : (
+            <span>—</span>
+          )}
+
+          <span className="font-medium">
+            {listing.quantity !== null ? `Stok: ${listing.quantity}` : "Stok: —"}
+          </span>
+        </div>
       </CardContent>
 
-      <CardFooter className="border-t p-2.5">
+      <CardFooter className="border-t p-2">
         <div className="grid grid-cols-3 gap-1.5 w-full">
           <Button
             size="sm"
