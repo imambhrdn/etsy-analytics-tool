@@ -41,21 +41,6 @@ export function ProductSearchForm() {
     router.push(`/products?${params.toString()}`);
   };
 
-  const triggerQuickType = (type: string) => {
-    setListingType(type);
-    if (q.trim()) {
-      const params = new URLSearchParams();
-      params.set("q", q.trim());
-      params.set("page", "1");
-      if (minPrice) params.set("min_price", minPrice);
-      if (maxPrice) params.set("max_price", maxPrice);
-      if (type) params.set("listing_type", type);
-      if (sortOn) params.set("sort_on", sortOn);
-      if (sortOrder) params.set("sort_order", sortOrder);
-      router.push(`/products?${params.toString()}`);
-    }
-  };
-
   const handleReset = () => {
     setLastSearch("");
     setQ("");
@@ -94,44 +79,6 @@ export function ProductSearchForm() {
             <RotateCcw className="size-4" />
           </Button>
         )}
-      </div>
-
-      {/* Quick filter pills: Digital vs Fisik */}
-      <div className="flex flex-wrap items-center gap-1.5 text-xs">
-        <span className="text-muted-foreground font-medium text-[11px] mr-1">Tipe:</span>
-        <button
-          type="button"
-          onClick={() => triggerQuickType("")}
-          className={`px-2.5 py-0.5 rounded-full border text-[11px] transition-all ${
-            !listingType
-              ? "bg-primary text-primary-foreground border-primary font-medium shadow-xs"
-              : "bg-muted/40 hover:bg-muted text-muted-foreground border-transparent"
-          }`}
-        >
-          Semua
-        </button>
-        <button
-          type="button"
-          onClick={() => triggerQuickType("download")}
-          className={`px-2.5 py-0.5 rounded-full border text-[11px] transition-all ${
-            listingType === "download"
-              ? "bg-sky-600 text-white border-sky-600 font-medium shadow-xs"
-              : "bg-muted/40 hover:bg-muted text-muted-foreground border-transparent"
-          }`}
-        >
-          Digital Download
-        </button>
-        <button
-          type="button"
-          onClick={() => triggerQuickType("physical")}
-          className={`px-2.5 py-0.5 rounded-full border text-[11px] transition-all ${
-            listingType === "physical"
-              ? "bg-zinc-800 text-white border-zinc-800 font-medium shadow-xs dark:bg-zinc-200 dark:text-zinc-900"
-              : "bg-muted/40 hover:bg-muted text-muted-foreground border-transparent"
-          }`}
-        >
-          Produk Fisik
-        </button>
       </div>
 
       {showFilters && (
@@ -192,8 +139,8 @@ export function ProductSearchForm() {
               onChange={(e) => setSortOrder(e.target.value)}
               className="border-input bg-background mt-1 h-8 w-full rounded-md border px-2 text-sm"
             >
-              <option value="desc">Menurun (Desc)</option>
-              <option value="asc">Menaik (Asc)</option>
+              <option value="asc">A–Z</option>
+              <option value="desc">Z–A</option>
             </select>
           </div>
         </div>

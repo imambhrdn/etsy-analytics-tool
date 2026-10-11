@@ -70,9 +70,12 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
           )}
 
           {listing.shopCountryCode && (
-            <span className="text-white text-[10px] font-normal leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+            <Badge
+              variant="secondary"
+              className="bg-white/95 text-[10px] shadow-xs backdrop-blur-xs font-medium px-1.5 py-0 dark:bg-black/85"
+            >
               {getCountryName(listing.shopCountryCode)}
-            </span>
+            </Badge>
           )}
         </div>
 
