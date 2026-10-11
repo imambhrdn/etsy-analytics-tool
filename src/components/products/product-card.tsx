@@ -54,6 +54,17 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
             Tidak ada foto
           </div>
         )}
+        <div className="absolute top-2 left-2 flex gap-1">
+          {listing.listingType === "download" ? (
+            <Badge className="bg-sky-600/90 text-white text-[10px] shadow-xs backdrop-blur-xs">
+              Digital
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="bg-white/90 text-[10px] shadow-xs backdrop-blur-xs dark:bg-black/80">
+              Fisik
+            </Badge>
+          )}
+        </div>
         <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
           {listing.numFavorers !== null && (
             <Badge variant="secondary" className="gap-1 bg-white/90 text-xs shadow-xs backdrop-blur-xs dark:bg-black/80">
@@ -117,32 +128,34 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
         )}
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between border-t p-3 text-xs">
-        <div className="flex items-center gap-1">
+      <CardFooter className="border-t p-2.5">
+        <div className="grid grid-cols-3 gap-1.5 w-full">
           <Button
             size="sm"
             variant="outline"
-            className="h-8 text-xs"
+            className="h-7 text-xs px-1 gap-1"
             onClick={handleSaveIdea}
             disabled={saving || saved}
+            title={saved ? "Ide telah tersimpan" : "Simpan ke Idea Vault"}
           >
             {saved ? (
               <>
                 <Check className="size-3 text-emerald-600" />
-                Tersimpan
+                <span className="truncate">Saved</span>
               </>
             ) : (
               <>
                 <Lightbulb className="size-3" />
-                Simpan Ide
+                <span className="truncate">Ide</span>
               </>
             )}
           </Button>
 
           <Button
             size="sm"
-            variant="ghost"
-            className="h-8 text-xs"
+            variant="outline"
+            className="h-7 text-xs px-1 gap-1"
+            title="Buka listing di Etsy.com"
             render={
               <Link
                 href={listing.url}
@@ -152,17 +165,17 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
             }
           >
             <ExternalLink className="size-3" />
-            Etsy
+            <span className="truncate">Etsy</span>
+          </Button>
+
+          <Button
+            size="sm"
+            className="h-7 text-xs px-1 font-medium"
+            render={<Link href={`/products/${listing.etsyListingId}`} />}
+          >
+            Detail
           </Button>
         </div>
-
-        <Button
-          size="sm"
-          className="h-8 text-xs"
-          render={<Link href={`/products/${listing.etsyListingId}`} />}
-        >
-          Detail
-        </Button>
       </CardFooter>
     </Card>
   );

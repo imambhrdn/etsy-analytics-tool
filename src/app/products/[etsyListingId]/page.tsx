@@ -9,7 +9,6 @@ import {
   Tag,
   ShieldCheck,
   Clock,
-  ArrowLeft,
   ShoppingBag,
   Star,
   Info,
@@ -23,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EtsyClient } from "@/lib/etsy/client";
 import { getStoredListing, upsertListings } from "@/lib/db/listings-repo";
 import { ProductGallery } from "@/components/products/product-gallery";
+import { BackButton } from "@/components/ui/back-button";
 
 type DetailParams = Promise<{ etsyListingId: string }>;
 
@@ -97,9 +97,7 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
   if (errorMsg || !listing) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" size="sm" render={<Link href="/products" />} className="gap-2">
-          <ArrowLeft className="size-4" /> Kembali ke Explorer
-        </Button>
+        <BackButton />
         <Card className="border-destructive/40">
           <CardHeader>
             <CardTitle>Gagal memuat detail listing</CardTitle>
@@ -115,9 +113,7 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" render={<Link href="/products" />} className="gap-2">
-          <ArrowLeft className="size-4" /> Kembali ke Product Explorer
-        </Button>
+        <BackButton />
 
         <Button
           size="sm"

@@ -9,6 +9,7 @@ const querySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(24),
   min_price: z.coerce.number().min(0).optional(),
   max_price: z.coerce.number().min(0).optional(),
+  listing_type: z.enum(["download", "physical", "all"]).optional(),
   sort_on: z.enum(["created", "price", "updated", "score"]).default("created"),
   sort_order: z.enum(["asc", "desc"]).default("desc"),
 });
@@ -22,6 +23,7 @@ export async function GET(request: Request) {
       limit: searchParams.get("limit") ?? undefined,
       min_price: searchParams.get("min_price") ?? undefined,
       max_price: searchParams.get("max_price") ?? undefined,
+      listing_type: searchParams.get("listing_type") ?? undefined,
       sort_on: searchParams.get("sort_on") ?? undefined,
       sort_order: searchParams.get("sort_order") ?? undefined,
     });
@@ -33,7 +35,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const { q, page, limit, min_price, max_price, sort_on, sort_order } = parsed.data;
+    const { q, page, limit, min_price, max_price, listing_type, sort_on, sort_order } = parsed.data;
     const offset = (page - 1) * limit;
 
     const client = new EtsyClient();
@@ -46,6 +48,11 @@ export async function GET(request: Request) {
       sortOn: sort_on,
       sortOrder: sort_order,
     });
+
+    const filteredResults =
+      listing_type && listing_type !== "all"
+        ? data.results.filter((l) => l.listingType === listing_type)
+        : data.results;
 
     // Catat search_run & simpan listings ke DB (PRD §7.2, P2-08, P2-09)
     try {
@@ -65,8 +72,8 @@ export async function GET(request: Request) {
       query: q,
       page,
       limit,
-      totalCount: data.count,
-      results: data.results,
+      totalCount: listing_type && listing_type !== "all" ? filteredResults.length : data.count,
+      results: filteredResults,
       rateLimit: data.rateLimit,
     });
   } catch (err: unknown) {

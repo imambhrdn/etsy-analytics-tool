@@ -17,6 +17,7 @@ type SearchParams = Promise<{
   page?: string;
   min_price?: string;
   max_price?: string;
+  listing_type?: "download" | "physical" | "";
   sort_on?: "created" | "price" | "updated" | "score";
   sort_order?: "asc" | "desc";
 }>;
@@ -47,6 +48,7 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
   const currentPage = Math.max(Number(params.page) || 1, 1);
   const minPrice = params.min_price ? Number(params.min_price) : undefined;
   const maxPrice = params.max_price ? Number(params.max_price) : undefined;
+  const listingType = params.listing_type || undefined;
   const sortOn = params.sort_on ?? "created";
   const sortOrder = params.sort_order ?? "desc";
 
@@ -70,19 +72,22 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
         sortOrder,
       });
 
-      listings = data.results;
-      totalCount = data.count;
+      // Filter berdasarkan tipe listing jika dipilih
+      listings = listingType
+        ? data.results.filter((l) => l.listingType === listingType)
+        : data.results;
+      totalCount = listingType ? listings.length : data.count;
       quotaRemaining = data.rateLimit.remainingToday;
 
       try {
         await recordSearchRun({
           keyword: q,
-          filters: { minPrice, maxPrice, sortOn, sortOrder, page: currentPage },
+          filters: { minPrice, maxPrice, listingType, sortOn, sortOrder, page: currentPage },
           itemsSeen: listings.length,
           status: "success",
           source: "explorer",
         });
-        await upsertListings(listings);
+        await upsertListings(data.results);
       } catch (dbErr) {
         console.warn("[ProductsPage] Gagal menyimpan ke DB:", dbErr);
       }
@@ -91,7 +96,7 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
       try {
         await recordSearchRun({
           keyword: q,
-          filters: { minPrice, maxPrice, sortOn, sortOrder, page: currentPage },
+          filters: { minPrice, maxPrice, listingType, sortOn, sortOrder, page: currentPage },
           itemsSeen: 0,
           status: "failed",
           errorSummary: errorMsg,
@@ -109,6 +114,7 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
     p.set("page", String(newPage));
     if (params.min_price) p.set("min_price", params.min_price);
     if (params.max_price) p.set("max_price", params.max_price);
+    if (params.listing_type) p.set("listing_type", params.listing_type);
     if (params.sort_on) p.set("sort_on", params.sort_on);
     if (params.sort_order) p.set("sort_order", params.sort_order);
     return `/products?${p.toString()}`;
@@ -159,7 +165,7 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
         </span>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {listings.map((listing) => (
           <ProductCard key={listing.etsyListingId} listing={listing} />
         ))}

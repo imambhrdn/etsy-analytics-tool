@@ -13,10 +13,15 @@ export function ProductSearchForm() {
   const [q, setQ] = useState(searchParams.get("q") ?? "");
   const [minPrice, setMinPrice] = useState(searchParams.get("min_price") ?? "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("max_price") ?? "");
+  const [listingType, setListingType] = useState(searchParams.get("listing_type") ?? "");
   const [sortOn, setSortOn] = useState(searchParams.get("sort_on") ?? "created");
   const [sortOrder, setSortOrder] = useState(searchParams.get("sort_order") ?? "desc");
   const [showFilters, setShowFilters] = useState(
-    Boolean(searchParams.get("min_price") || searchParams.get("max_price")),
+    Boolean(
+      searchParams.get("min_price") ||
+        searchParams.get("max_price") ||
+        searchParams.get("listing_type"),
+    ),
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -28,6 +33,7 @@ export function ProductSearchForm() {
     params.set("page", "1");
     if (minPrice) params.set("min_price", minPrice);
     if (maxPrice) params.set("max_price", maxPrice);
+    if (listingType) params.set("listing_type", listingType);
     if (sortOn) params.set("sort_on", sortOn);
     if (sortOrder) params.set("sort_order", sortOrder);
 
@@ -38,6 +44,7 @@ export function ProductSearchForm() {
     setQ("");
     setMinPrice("");
     setMaxPrice("");
+    setListingType("");
     setSortOn("created");
     setSortOrder("desc");
     router.push("/products");
@@ -73,7 +80,19 @@ export function ProductSearchForm() {
       </div>
 
       {showFilters && (
-        <div className="bg-muted/40 grid gap-3 rounded-lg border p-4 sm:grid-cols-4">
+        <div className="bg-muted/40 grid gap-3 rounded-lg border p-4 sm:grid-cols-2 md:grid-cols-5">
+          <div>
+            <label className="text-muted-foreground text-xs font-medium">Tipe Produk</label>
+            <select
+              value={listingType}
+              onChange={(e) => setListingType(e.target.value)}
+              className="border-input bg-background mt-1 h-8 w-full rounded-md border px-2 text-sm"
+            >
+              <option value="">Semua Tipe</option>
+              <option value="download">Digital Download</option>
+              <option value="physical">Produk Fisik</option>
+            </select>
+          </div>
           <div>
             <label className="text-muted-foreground text-xs font-medium">Harga Min (USD)</label>
             <Input
@@ -99,7 +118,7 @@ export function ProductSearchForm() {
             />
           </div>
           <div>
-            <label className="text-muted-foreground text-xs font-medium">Urutkan Berdasarkan</label>
+            <label className="text-muted-foreground text-xs font-medium">Urutkan</label>
             <select
               value={sortOn}
               onChange={(e) => setSortOn(e.target.value)}
@@ -112,7 +131,7 @@ export function ProductSearchForm() {
             </select>
           </div>
           <div>
-            <label className="text-muted-foreground text-xs font-medium">Arah Urutan</label>
+            <label className="text-muted-foreground text-xs font-medium">Arah</label>
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
