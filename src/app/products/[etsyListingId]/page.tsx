@@ -132,9 +132,6 @@ async function ProductDetailContent({ params }: { params: DetailParams }) {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">{listing.title}</h1>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="font-mono text-xs">
-            {listing.etsyListingId}
-          </Badge>
           {listing.shopName && (
             <a
               href={listing.shopUrl || `https://www.etsy.com/shop/${listing.shopName}`}

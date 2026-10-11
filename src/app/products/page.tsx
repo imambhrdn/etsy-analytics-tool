@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { ChevronLeft, ChevronRight, Sparkles, Inbox } from "lucide-react";
-import { PageHeader } from "@/components/page-header";
 import { EmptyState, ErrorState } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -146,16 +145,16 @@ async function ProductExplorer({ searchParams }: { searchParams: SearchParams })
         <SearchPersistence />
       </Suspense>
 
-      {/* Satu bar sticky: judul + filter + ringkasan hasil (tidak ikut tergulir) */}
-      <div className="sticky top-0 z-20 -mx-4 -mt-4 space-y-3 border-b bg-background/95 px-4 pt-4 pb-3 shadow-xs backdrop-blur-md md:-mx-6 md:-mt-6 md:px-6 md:pt-6 md:pb-3.5">
-        <PageHeader title="Product Explorer" />
+      {/* Satu bar sticky ringkas: judul + filter + ringkasan hasil (tidak ikut tergulir) */}
+      <div className="sticky top-0 z-20 -mx-4 -mt-4 space-y-2 border-b bg-background/95 px-4 pt-3 pb-2.5 shadow-xs backdrop-blur-md md:-mx-6 md:-mt-6 md:px-6 md:pt-4 md:pb-3">
+        <h1 className="text-lg font-semibold tracking-tight">Product Explorer</h1>
 
-        <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+        <Suspense fallback={<Skeleton className="h-9 w-full" />}>
           <ProductSearchForm />
         </Suspense>
 
         {hasResults && (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-2.5 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-2 text-[11px] text-muted-foreground">
             <div className="flex flex-wrap items-center gap-2">
               <span>
                 Menampilkan{" "}
@@ -166,13 +165,13 @@ async function ProductExplorer({ searchParams }: { searchParams: SearchParams })
                 dari <strong className="text-foreground">{formatNumber(totalCount)}</strong> hasil
               </span>
               {quotaRemaining !== null && (
-                <Badge variant="outline" className="text-[11px] font-mono">
-                  Sisa kuota: {formatNumber(quotaRemaining)}
+                <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0">
+                  Kuota: {formatNumber(quotaRemaining)}
                 </Badge>
               )}
             </div>
             <div className="font-medium text-foreground">
-              Halaman {formatNumber(currentPage)} dari {formatNumber(totalPages)}
+              Halaman {formatNumber(currentPage)} / {formatNumber(totalPages)}
             </div>
           </div>
         )}
