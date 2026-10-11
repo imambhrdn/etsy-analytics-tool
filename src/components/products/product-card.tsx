@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Heart, ExternalLink, Lightbulb, Check } from "lucide-react";
+import { Heart, ExternalLink, Lightbulb, Check, Calendar, ShoppingBag } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,11 +54,17 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
             Tidak ada foto
           </div>
         )}
-        <div className="absolute top-2 right-2 flex gap-1">
+        <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
           {listing.numFavorers !== null && (
             <Badge variant="secondary" className="gap-1 bg-white/90 text-xs shadow-xs backdrop-blur-xs dark:bg-black/80">
               <Heart className="size-3 fill-rose-500 text-rose-500" />
               <span>{listing.numFavorers}</span>
+            </Badge>
+          )}
+          {listing.shopSoldCount !== null && (
+            <Badge variant="secondary" className="gap-1 bg-white/90 text-[10px] shadow-xs backdrop-blur-xs dark:bg-black/80" title="Total penjualan toko ini">
+              <ShoppingBag className="size-3 text-emerald-600" />
+              <span>{listing.shopSoldCount} terjual</span>
             </Badge>
           )}
         </div>
@@ -72,9 +78,15 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
         >
           {listing.title}
         </Link>
-        {listing.shopName && (
-          <p className="text-muted-foreground text-xs">{listing.shopName}</p>
-        )}
+        <div className="flex items-center justify-between text-xs text-muted-foreground pt-0.5">
+          {listing.shopName && <span>{listing.shopName}</span>}
+          {listing.createdAtEtsy && (
+            <span className="flex items-center gap-1 font-mono text-[11px]" title="Tanggal listing dibuat di Etsy">
+              <Calendar className="size-3" />
+              {listing.createdAtEtsy.slice(0, 10)}
+            </span>
+          )}
+        </div>
       </CardHeader>
 
       <CardContent className="flex-1 p-4 pt-0">

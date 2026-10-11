@@ -1,21 +1,57 @@
-import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { Heart, ExternalLink, Calendar, Tag, ShieldCheck, Clock, ArrowLeft } from "lucide-react";
+import {
+  Heart,
+  ExternalLink,
+  Calendar,
+  Tag,
+  ShieldCheck,
+  Clock,
+  ArrowLeft,
+  ShoppingBag,
+  Star,
+  Info,
+} from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { EtsyClient } from "@/lib/etsy/client";
 import { getStoredListing, upsertListings } from "@/lib/db/listings-repo";
+import { ProductGallery } from "@/components/products/product-gallery";
 
-export default async function ProductDetailPage(props: {
-  params: Promise<{ etsyListingId: string }>;
-}) {
+type DetailParams = Promise<{ etsyListingId: string }>;
+
+function ProductDetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-8 w-48" />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
+          <Skeleton className="aspect-16/10 w-full rounded-xl" />
+          <div className="flex gap-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="size-16 rounded-lg" />
+            ))}
+          </div>
+          <Skeleton className="h-40 w-full" />
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function ProductDetailContent({ params }: { params: DetailParams }) {
   await connection();
-  const { etsyListingId } = await props.params;
+  const { etsyListingId } = await params;
   const listingId = Number(etsyListingId);
 
   if (isNaN(listingId) || listingId <= 0) {
@@ -23,7 +59,13 @@ export default async function ProductDetailPage(props: {
   }
 
   let listing = null;
-  let images: Array<{ listing_image_id: number; url_570xN?: string; url_fullxfull?: string; alt_text?: string | null }> = [];
+  let images: Array<{
+    listing_image_id: number;
+    url_570xN?: string;
+    url_fullxfull?: string;
+    url_170x135?: string;
+    alt_text?: string | null;
+  }> = [];
   let snapshots: Array<{
     id: number;
     captured_at: string;
@@ -41,13 +83,12 @@ export default async function ProductDetailPage(props: {
     listing = data.listing;
     images = data.images;
 
-    // Simpan snapshot & ambil riwayat dari database
     try {
       await upsertListings([listing]);
       const stored = await getStoredListing(listingId);
       snapshots = stored?.listing_snapshots || [];
     } catch (dbErr) {
-      console.warn("[ProductDetail] DB sync error:", dbErr);
+      console.warn("[ProductDetailContent] DB sync error:", dbErr);
     }
   } catch (err) {
     errorMsg = err instanceof Error ? err.message : "Gagal memuat detail listing dari Etsy";
@@ -96,43 +137,14 @@ export default async function ProductDetailPage(props: {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Kolom Kiri: Foto / Galeri */}
-        <div className="space-y-4 lg:col-span-2">
-          <div className="bg-muted relative aspect-16/10 w-full overflow-hidden rounded-lg border">
-            {images[0]?.url_570xN || listing.imageUrl ? (
-              <Image
-                src={images[0]?.url_570xN || listing.imageUrl!}
-                alt={listing.title}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 66vw"
-                className="object-cover"
-              />
-            ) : (
-              <div className="text-muted-foreground flex size-full items-center justify-center">
-                Tidak ada foto
-              </div>
-            )}
-          </div>
-
-          {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-              {images.slice(1, 7).map((img) => (
-                <div
-                  key={img.listing_image_id}
-                  className="bg-muted relative aspect-square overflow-hidden rounded-md border"
-                >
-                  <Image
-                    src={img.url_570xN || img.url_fullxfull!}
-                    alt={img.alt_text || "Foto listing"}
-                    fill
-                    sizes="100px"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Kolom Kiri: Galeri Foto Lengkap & Deskripsi */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* Galeri Seluruh Foto Listing (Interactive Thumbnail Switching) */}
+          <ProductGallery
+            images={images}
+            fallbackUrl={listing.imageUrl}
+            title={listing.title}
+          />
 
           {/* Deskripsi */}
           {listing.description && (
@@ -191,9 +203,7 @@ export default async function ProductDetailPage(props: {
                     {snapshots.map((snap) => (
                       <TableRow key={snap.id}>
                         <TableCell className="font-mono text-xs">
-                          {new Date(snap.captured_at).toLocaleString("id-ID", {
-                            timeZone: "Asia/Jakarta",
-                          })}
+                          {snap.captured_at.slice(0, 19).replace("T", " ")}
                         </TableCell>
                         <TableCell className="font-medium text-xs">
                           {snap.currency_code} {snap.price?.toFixed(2) ?? "—"}
@@ -214,11 +224,11 @@ export default async function ProductDetailPage(props: {
           </Card>
         </div>
 
-        {/* Kolom Kanan: Info & Metadata */}
+        {/* Kolom Kanan: Metrik, Tanggal, dan Info Toko */}
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Informasi Listing</CardTitle>
+              <CardTitle className="text-base">Informasi Listing & Toko</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
               <div>
@@ -252,30 +262,64 @@ export default async function ProductDetailPage(props: {
                 </div>
               </div>
 
-              {(listing.createdAtEtsy || listing.updatedAtEtsy) && (
-                <div className="space-y-1 border-t pt-3 text-xs">
-                  {listing.createdAtEtsy && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        <Calendar className="size-3" /> Dibuat di Etsy:
-                      </span>
-                      <span className="font-mono">
-                        {new Date(listing.createdAtEtsy).toLocaleDateString("id-ID")}
-                      </span>
-                    </div>
-                  )}
-                  {listing.updatedAtEtsy && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        <Calendar className="size-3" /> Update Terakhir:
-                      </span>
-                      <span className="font-mono">
-                        {new Date(listing.updatedAtEtsy).toLocaleDateString("id-ID")}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Data Penjualan Toko & Tanggal Dibuat */}
+              <div className="space-y-2 border-t pt-3 text-xs">
+                {listing.shopSoldCount !== null && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <ShoppingBag className="size-3.5 text-emerald-600" />
+                      Total Penjualan Toko:
+                    </span>
+                    <span className="font-semibold text-emerald-600">
+                      {listing.shopSoldCount} terjual
+                    </span>
+                  </div>
+                )}
+
+                {listing.shopReviewCount !== null && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <Star className="size-3.5 text-amber-500" />
+                      Review Toko:
+                    </span>
+                    <span className="font-medium">
+                      {listing.shopReviewCount} review
+                    </span>
+                  </div>
+                )}
+
+                {listing.createdAtEtsy && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <Calendar className="size-3.5" />
+                      Dibuat di Etsy:
+                    </span>
+                    <span className="font-mono font-medium">
+                      {listing.createdAtEtsy.slice(0, 10)}
+                    </span>
+                  </div>
+                )}
+
+                {listing.updatedAtEtsy && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <Clock className="size-3.5" />
+                      Update Terakhir:
+                    </span>
+                    <span className="font-mono">
+                      {listing.updatedAtEtsy.slice(0, 10)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Penjelasan Kebijakan Data Sesuai PRD §3.2 & §12 */}
+              <div className="bg-muted/50 text-muted-foreground flex items-start gap-2 rounded-md p-2.5 text-[11px] leading-tight">
+                <Info className="size-4 shrink-0 mt-0.5" />
+                <span>
+                  Etsy Open API v3 menyediakan total penjualan pada level toko. Data penjualan per listing individu tidak diekspos oleh API untuk perlindungan privasi penjual.
+                </span>
+              </div>
             </CardContent>
           </Card>
 
@@ -302,5 +346,13 @@ export default async function ProductDetailPage(props: {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProductDetailPage(props: { params: DetailParams }) {
+  return (
+    <Suspense fallback={<ProductDetailSkeleton />}>
+      <ProductDetailContent params={props.params} />
+    </Suspense>
   );
 }

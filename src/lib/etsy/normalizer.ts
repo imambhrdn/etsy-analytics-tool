@@ -42,6 +42,8 @@ export function normalizeListing(raw: EtsyRawListing): NormalizedListing {
     tags: Array.isArray(raw.tags) ? raw.tags : [],
     shopId: typeof raw.shop_id === "number" ? raw.shop_id : null,
     shopName: raw.shop?.shop_name ?? null,
+    shopSoldCount: typeof raw.shop?.transaction_sold_count === "number" ? raw.shop.transaction_sold_count : null,
+    shopReviewCount: typeof raw.shop?.review_count === "number" ? raw.shop.review_count : null,
     imageUrl,
     createdAtEtsy,
     updatedAtEtsy,
