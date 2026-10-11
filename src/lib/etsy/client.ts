@@ -137,6 +137,7 @@ export class EtsyClient {
 
   /**
    * Cari listing aktif publik (findAllListingsActive - PRD §7.2).
+   * Otomatis melakukan batch enrichment untuk gambar & nama toko via endpoint batch.
    */
   async searchActiveListings(
     params: SearchListingsParams,
@@ -159,12 +160,63 @@ export class EtsyClient {
       },
     );
 
-    const results = (data.results || []).map(normalizeListing);
+    let rawListings = data.results || [];
+
+    // Ambil gambar & info toko sekaligus via batch endpoint (1 request efisien)
+    if (rawListings.length > 0) {
+      try {
+        const ids = rawListings.map((r) => r.listing_id);
+        const batchMap = await this.getListingsBatch(ids, "Images,Shop");
+        rawListings = rawListings.map((item) => {
+          const enriched = batchMap.get(item.listing_id);
+          if (enriched) {
+            return {
+              ...item,
+              images: enriched.images || item.images,
+              shop: enriched.shop || item.shop,
+            };
+          }
+          return item;
+        });
+      } catch (batchErr) {
+        console.warn("[EtsyClient] Gagal batch enrichment gambar:", batchErr);
+      }
+    }
+
+    const results = rawListings.map(normalizeListing);
     return {
       count: data.count || 0,
       results,
       rateLimit,
     };
+  }
+
+  /**
+   * Ambil data batch listings berdasarkan daftar ID (PRD §7.2).
+   */
+  async getListingsBatch(
+    listingIds: number[],
+    includes = "Images,Shop",
+  ): Promise<Map<number, EtsyRawListing>> {
+    const map = new Map<number, EtsyRawListing>();
+    if (listingIds.length === 0) return map;
+
+    // Batch endpoint Etsy menerima koma pemisah listing_ids (maksimal 100)
+    const { data } = await this.request<EtsyActiveListingsResponse>(
+      "/listings/batch",
+      {
+        listing_ids: listingIds.slice(0, 100).join(","),
+        includes,
+      },
+    );
+
+    if (Array.isArray(data.results)) {
+      for (const item of data.results) {
+        map.set(item.listing_id, item);
+      }
+    }
+
+    return map;
   }
 
   /**

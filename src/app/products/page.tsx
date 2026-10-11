@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { ChevronLeft, ChevronRight, Sparkles, Inbox } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { EmptyState, ErrorState } from "@/components/states";
@@ -40,6 +41,7 @@ function ProductGridSkeleton() {
 }
 
 async function ProductResults({ searchParams }: { searchParams: SearchParams }) {
+  await connection();
   const params = await searchParams;
   const q = params.q?.trim() ?? "";
   const currentPage = Math.max(Number(params.page) || 1, 1);
@@ -147,7 +149,7 @@ async function ProductResults({ searchParams }: { searchParams: SearchParams }) 
         <span className="text-muted-foreground">
           Menampilkan {((currentPage - 1) * PAGE_SIZE) + 1}–
           {Math.min(currentPage * PAGE_SIZE, totalCount)} dari{" "}
-          <span className="font-semibold">{totalCount.toLocaleString()}</span> hasil
+          <span className="font-semibold">{totalCount}</span> hasil
           {quotaRemaining !== null && (
             <> · sisa kuota harian: <span className="font-mono">{quotaRemaining}</span></>
           )}

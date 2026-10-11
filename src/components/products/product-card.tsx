@@ -58,7 +58,7 @@ export function ProductCard({ listing }: { listing: NormalizedListing }) {
           {listing.numFavorers !== null && (
             <Badge variant="secondary" className="gap-1 bg-white/90 text-xs shadow-xs backdrop-blur-xs dark:bg-black/80">
               <Heart className="size-3 fill-rose-500 text-rose-500" />
-              <span>{listing.numFavorers.toLocaleString()}</span>
+              <span>{listing.numFavorers}</span>
             </Badge>
           )}
         </div>

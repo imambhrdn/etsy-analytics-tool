@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Heart, ExternalLink, Calendar, Tag, ShieldCheck, Clock, ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { getStoredListing, upsertListings } from "@/lib/db/listings-repo";
 export default async function ProductDetailPage(props: {
   params: Promise<{ etsyListingId: string }>;
 }) {
+  await connection();
   const { etsyListingId } = await props.params;
   const listingId = Number(etsyListingId);
 
@@ -197,7 +199,7 @@ export default async function ProductDetailPage(props: {
                           {snap.currency_code} {snap.price?.toFixed(2) ?? "—"}
                         </TableCell>
                         <TableCell className="text-xs">
-                          {snap.num_favorers?.toLocaleString() ?? "—"}
+                          {snap.num_favorers ?? "—"}
                         </TableCell>
                         <TableCell className="text-xs">{snap.quantity ?? "—"}</TableCell>
                         <TableCell className="text-muted-foreground text-xs">
@@ -231,7 +233,7 @@ export default async function ProductDetailPage(props: {
                   <span className="text-muted-foreground">Peminat (Favorit)</span>
                   <p className="flex items-center gap-1 font-semibold">
                     <Heart className="size-3 fill-rose-500 text-rose-500" />
-                    {listing.numFavorers?.toLocaleString() ?? "—"}
+                    {listing.numFavorers ?? "—"}
                   </p>
                 </div>
                 <div>
