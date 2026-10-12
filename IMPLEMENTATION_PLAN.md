@@ -1,20 +1,39 @@
 # IMPLEMENTATION_PLAN — Etsy Intelligence
 
 > Dibuat pada Phase 0 (Repository Inspection & Plan) sesuai PRD §17.
-> Sumber spesifikasi: `etsy_intelligence_prd.md` v1.0 · Taskboard: `TASKBOARD.md` v1.0.
+> Sumber spesifikasi: `etsy_intelligence_prd.md` v1.0 · Taskboard: `TASKBOARD.md` v1.1.
 
 - **Tanggal inspeksi:** 2026-10-11
-- **Sesi:** ses-2026-10-11-a
+- **Terakhir diperbarui:** 2026-10-12 (sesi `ses-2026-10-12-a`) — sinkronisasi status dengan TASKBOARD v1.1
+- **Sesi:** ses-2026-10-11-a (awal) · ses-2026-10-12-a (pembaruan)
 - **Zona waktu:** Asia/Jakarta (WIB, UTC+7)
-- **Status:** Plan selesai. Belum ada kode aplikasi (repo kosong selain dokumen).
+- **Status:** Phase 0, 1, 2 (+ UX polish) **SELESAI**. Aplikasi berjalan lokal, data live Etsy & Supabase terbukti. Fase aktif berikutnya: **Phase 3**.
+- **Repo:** https://github.com/imambhrdn/etsy-analytics-tool (ter-push, branch `main`)
+
+### Peta status fase (ringkas)
+
+| Fase | Status | Bukti |
+|:-----|:------:|:------|
+| 0 Inspection & plan | ✅ | `file:IMPLEMENTATION_PLAN.md` |
+| 1 Foundation | ✅ | `src/`, `migrations/`, `.env.example` |
+| 2 Etsy client & Explorer | ✅ | `src/lib/etsy/`, `/products`, tests pass |
+| 2b UX polish Explorer | ✅ | `commit:51282a6`, `32e02cb`, `b86e5fa` |
+| 3 Discovery & snapshots | ⏳ **aktif** | — |
+| 4 Scoring & Idea Vault | ⬜ | — |
+| 5 Competitor & My Shop | ⬜ | — |
+| 6 n8n & reports | ⬜ | — |
+| 7 Hardening | ⬜ | — |
 
 ---
 
 ## 1. Hasil Inspeksi Repo (PRD §17 Phase 0.1–0.3)
 
-### 1.1 Struktur repo
+> ⚠️ **Catatan historis.** Bagian ini merekam kondisi repo **saat Phase 0 (2026-10-11)**.
+> Repo kini **sudah berisi kode lengkap** (Phase 1 & 2 selesai) — lihat §1.4 untuk kondisi terkini.
 
-Repo berisi **hanya 2 file dokumen** — tidak ada kode, config, atau migrasi:
+### 1.1 Struktur repo (kondisi awal Phase 0)
+
+Saat Phase 0, repo berisi **hanya 2 file dokumen** — tidak ada kode, config, atau migrasi:
 
 ```
 etsyintelegnet/
@@ -41,23 +60,32 @@ etsyintelegnet/
 
 ### 1.3 Env variables dibutuhkan (PRD §19) — nama saja, TANPA nilai
 
-Semua **belum diset** (kosong). Tidak ada `.env*` di repo.
+**Status terkini (2026-10-12)** — nilai diisi oleh pengguna di `.env.local` (tidak di-commit):
 
 | Variable | Wajib untuk | Status |
 |:---------|:------------|:------:|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase client | ❌ kosong |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase client (RLS) | ❌ kosong |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-only admin | ❌ kosong |
-| `ETSY_API_KEY` | Header `x-api-key` (keystring:shared_secret) | ❌ kosong |
-| `ETSY_SHARED_SECRET` | Bagian dari `x-api-key` | ❌ kosong |
-| `ETSY_REDIRECT_URI` | OAuth callback (harus HTTPS) | ❌ kosong |
-| `TOKEN_ENCRYPTION_KEY` | Enkripsi token OAuth di DB | ❌ kosong |
-| `N8N_BASE_URL` | Trigger job n8n (server-only) | ❌ kosong |
-| `N8N_WEBHOOK_SECRET` | Auth webhook n8n | ❌ kosong |
-| `AI_PROVIDER_API_KEY` | Research Brief (opsional) | ❌ kosong |
-| `APP_TIMEZONE` | Default `Asia/Jakarta` | ❌ kosong (pakai default kode) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase client | ✅ terisi |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase client (RLS) | ✅ terisi |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only admin | ✅ terisi |
+| `ETSY_API_KEY` | Header `x-api-key` (keystring:shared_secret) | ✅ terisi |
+| `ETSY_SHARED_SECRET` | Bagian dari `x-api-key` | ✅ terisi |
+| `ETSY_REDIRECT_URI` | OAuth callback (harus HTTPS) | ⬜ kosong (Phase 5) |
+| `TOKEN_ENCRYPTION_KEY` | Enkripsi token OAuth di DB | ⬜ kosong (Phase 5) |
+| `N8N_BASE_URL` | Trigger job n8n (server-only) | ✅ terisi |
+| `N8N_WEBHOOK_SECRET` | Auth webhook n8n | ✅ terisi |
+| `AI_PROVIDER_API_KEY` | Research Brief (opsional) | ⬜ kosong (Phase 6, opsional) |
+| `APP_TIMEZONE` | Default `Asia/Jakarta` | ✅ terisi |
+| `DATABASE_URL` | Migrasi & koneksi DB (pooler IPv4) | ✅ terisi (server-only) |
 
-> **Catatan keamanan:** nilai rahasia tidak boleh ditulis ke chat, log, commit, atau dokumentasi. Hanya nama + status.
+> **Catatan keamanan:** nilai rahasia tidak boleh ditulis ke chat, log, commit, atau dokumentasi. Hanya nama + status. `.env.local` **tidak** ter-track git (hanya `.env.example` yang ter-commit, tanpa nilai).
+
+### 1.4 Kondisi repo terkini (2026-10-12)
+
+- **Kode lengkap Phase 1 & 2** ada di `src/` (59 file): App Router pages, adapter Etsy server-only, komponen UI, lib config/currency.
+- **Migrasi DB** di `migrations/` (2 file) — **12/12 tabel** aktif di Supabase.
+- **Data nyata tersimpan:** ~1.045 listings, ~1.045 snapshots, ~124 search_runs (bukti Product Explorer dipakai).
+- **Git:** branch `main`, ter-push ke GitHub, working tree bersih.
+- **Verifikasi lolos:** `npm test` (3 unit + integration), `npm run lint`, `npx tsc --noEmit`, `npm run build`.
 
 ---
 
@@ -154,33 +182,49 @@ Tersedia: `listing_id, user_id, shop_id, title, description, state, quantity, ur
 | D6 | Money disimpan `numeric(12,2)` + `currency_code` per baris | PRD §10; hindari float |
 | D7 | Snapshot **append-only** dengan dedup key (listing + capture window) | PRD §10, §16 |
 | D8 | AI Research Brief ditunda (P2, Phase 6) — fitur opsional | PRD §14, §3.2 |
+| D9 | Pertahankan `cacheComponents: true` bawaan scaffold Next 16 | Mematikannya (harus uji ulang; dashboard dinamis tetap perlu `<Suspense>`) |
+| D10 | Format tanggal/angka/nama-negara **deterministik statis** (bukan `Intl`) | `Intl.*` → hydration mismatch server vs client |
+| D11 | Kurs IDR dari `open.er-api.com` (base USD), cache 24 jam | frankfurter.app (mata uang terbatas); tanpa konversi (pengguna minta IDR) |
+| D12 | Harga tampil IDR (tanpa desimal); mata uang asli sbg referensi kecil | Multi-mata uang campur (sulit dibandingkan) |
 
-### 3.4 Struktur folder target (Phase 1, PRD §17 P1-08)
+> D9–D12 ditambahkan pada sesi `ses-2026-10-11-d` (UX polish Phase 2b). Detail lengkap di `TASKBOARD.md` §5.
+
+### 3.4 Struktur folder (aktual, per 2026-10-12)
+
+> Catatan: implementasi memakai `src/` (bukan root `app/`). Tidak ada route group `(dashboard)` — layout sidebar langsung di root layout.
 
 ```
 etsyintelegnet/
-├── app/                      # Next.js App Router
-│   ├── (dashboard)/
-│   │   ├── page.tsx          # / Today's Etsy Trends
-│   │   ├── products/         # Product Explorer + [etsyListingId]
-│   │   ├── ideas/            # Idea Vault
-│   │   ├── trends/ competitors/ keywords/ opportunities/
-│   │   ├── my-shop/          # listings, orders
+├── src/
+│   ├── app/                      # Next.js App Router
+│   │   ├── layout.tsx            # root layout (sidebar + tooltip provider)
+│   │   ├── page.tsx              # /  Today's Etsy Trends
+│   │   ├── loading.tsx error.tsx not-found.tsx
+│   │   ├── products/
+│   │   │   ├── page.tsx          # Product Explorer (search, filter, pagination)
+│   │   │   └── [etsyListingId]/page.tsx   # Listing Detail (galeri + video + snapshot)
+│   │   ├── ideas/ trends/ competitors/ keywords/ opportunities/
+│   │   ├── my-shop/listings|orders/
 │   │   ├── profit/ automation/ reports/ settings/
-│   ├── api/                  # route handlers internal
-│   ├── layout.tsx
-│   └── globals.css
-├── components/
-│   ├── ui/                   # shadcn/ui primitives
-│   └── ...                   # feature components
-├── lib/
-│   ├── etsy/                 # ADAPTER server-only (isolasi API)
-│   ├── db/                   # supabase client (server/client split)
-│   ├── domain/               # types, normalisasi, scoring
-│   ├── config/               # config terpusat + Zod env schema
-│   └── utils/
-├── migrations/               # SQL berversi (PRD §10)
-├── tests/                    # unit + integration
+│   │   └── api/
+│   │       ├── products/route.ts
+│   │       ├── products/[etsyListingId]/route.ts
+│   │       └── ideas/route.ts
+│   ├── components/
+│   │   ├── ui/                   # shadcn/ui primitives (14+ komponen)
+│   │   ├── products/             # product-card, galleries, search-form, persistence
+│   │   ├── app-sidebar.tsx page-header.tsx states.tsx coming-later.tsx
+│   ├── hooks/use-mobile.ts
+│   └── lib/
+│       ├── etsy/                 # ADAPTER server-only: client, normalizer, types
+│       ├── db/                   # supabase-server, listings-repo (upsert, search_runs)
+│       ├── config/               # env.ts (Zod), app.ts (navigasi)
+│       ├── currency.ts           # kurs harian (open.er-api.com)
+│       ├── search-store.ts       # persistensi query pencarian
+│       └── utils.ts              # formatNumber/formatIDR/formatDateIndo/getCountryName
+├── migrations/                   # 0001_initial_schema.sql, 0002_rls.sql
+├── scripts/                      # migrate.js (runner migrasi idempotent)
+├── tests/                        # normalizer-and-dedup.test.mjs
 ├── .env.example
 ├── IMPLEMENTATION_PLAN.md
 ├── TASKBOARD.md
@@ -221,26 +265,28 @@ etsyintelegnet/
 
 | # | Blocker | Dampak | Status / mitigasi |
 |:--|:--------|:-------|:------------------|
-| B1 | **Etsy API key belum ada** (`ETSY_API_KEY` kosong) | Tidak bisa panggil data live; Phase 2 hanya bisa diuji dengan mock | Mitigasi: adapter + mock tests dulu (PRD §18: "jangan andalkan live credentials di CI") |
-| B2 | **Supabase project belum ada** | Tidak bisa jalankan migrasi nyata | Mitigasi: tulis migrasi SQL berversi; jalankan saat kredensial tersedia |
-| B3 | **Docker tidak terpasang** | n8n self-host lokal belum bisa | Mitigasi: dokumentasi setup n8n + manual trigger (Phase 6) |
-| B4 | **OAuth redirect butuh HTTPS publik** | My Shop OAuth tak bisa dites lokal murni | Mitigasi: dev tunnel (mis. cloudflared) didokumentasikan di Phase 5 |
-| B5 | Belum tahu **access level** app Etsy yang disetujui | Bisa membatasi endpoint | Mitigasi: verifikasi di Phase 2/5 sebelum mengklaim fitur |
+| B1 | **Etsy API key** | Data live Etsy | **RESOLVED** (diisi 2026-10-11; data live terbukti, limit 5000/hari) |
+| B2 | **Supabase project** | Persistensi data | **RESOLVED** (project terhubung, 12 tabel aktif via pooler IPv4) |
+| B3 | **Docker tidak terpasang** | n8n self-host lokal | Open (mitigasi: manual trigger / server action di Phase 3/6) |
+| B4 | **OAuth redirect butuh HTTPS publik** | My Shop OAuth | Open (ditangani Phase 5; pakai dev tunnel / cloudflared) |
+| B5 | **Access level app Etsy** | Batasan endpoint | Open — endpoint publik (`listings/active`, `batch`, `videos`) **terbukti jalan**; scope OAuth diverifikasi Phase 5 |
+| B6 | **Ketergantungan API kurs** | Nilai IDR | Open (kurs dari `open.er-api.com`, cache 24 jam; fallback aman: tampil mata uang asli jika API down) |
 
 ---
 
-## 6. Rencana Per Fase (PRD §17)
+## 6. Rencana Per Fase (PRD §17) & Status Terkini
 
-| Fase | Fokus | Keluaran utama | Blocker terkait |
-|:-----|:------|:---------------|:----------------|
-| **0** | Inspection & plan | File ini + asumsi/blocker | — |
-| **1** | Foundation | Next.js+TS+Tailwind, sidebar, Zod config, `.env.example`, migrasi awal | B2 |
-| **2** | Etsy client & Explorer | Adapter server-only, `/products`, detail, `search_runs`, dedup | B1 |
-| **3** | Discovery & snapshots | Seeds, job, snapshots, `/` Trends, states | B1, B4 |
-| **4** | Scoring & Idea Vault | Delta 7/30/90, klasifikasi, score, `/ideas`, unit test | — |
-| **5** | Competitor & My Shop | Tracking, OAuth (PKCE), `/my-shop` read-only | B4, B5 |
-| **6** | n8n & reports | Workflow A/B/C docs, `/automation`, `/reports`, alerts | B3 |
-| **7** | Hardening | lint/typecheck/test/build, a11y, RLS, README, DoD | — |
+| Fase | Fokus | Keluaran utama | Status | Bukti utama |
+|:-----|:------|:---------------|:------:|:------------|
+| **0** | Inspection & plan | File ini + asumsi/blocker | `[x]` | `file:IMPLEMENTATION_PLAN.md` |
+| **1** | Foundation | Next.js+TS+Tailwind, sidebar, Zod config, `.env.example`, migrasi awal | `[x]` | `file:src/`, `migrations/`, `.env.example` |
+| **2** | Etsy client & Explorer | Adapter server-only, `/products`, detail, `search_runs`, dedup | `[x]` | `file:src/lib/etsy/`, `/products`, tests pass |
+| **2b** | UX polish Explorer | Galeri gambar+video, kurs IDR, filter digital/fisik, sticky bar | `[x]` | `commit:51282a6`, `32e02cb`, `b86e5fa` |
+| **3** | Discovery & snapshots | Seeds, job, snapshots, `/` Trends, states | ⏳ **aktif** | — |
+| **4** | Scoring & Idea Vault | Delta 7/30/90, klasifikasi, score, `/ideas`, unit test | `[ ]` | — |
+| **5** | Competitor & My Shop | Tracking, OAuth (PKCE), `/my-shop` read-only | `[ ]` | B4, B5 |
+| **6** | n8n & reports | Workflow A/B/C docs, `/automation`, `/reports`, alerts | `[ ]` | B3 |
+| **7** | Hardening | lint/typecheck/test/build, a11y, RLS, README, DoD | `[ ]` | — |
 
 ### Urutan eksekusi ketat
 Satu fase pada satu waktu, berurutan. Setelah tiap fase: jalankan lint/typecheck/test relevan, update `TASKBOARD.md`, tulis Session Log. **Jangan tandai `[x]` bila hanya UI tanpa integrasi nyata** (PRD §21).
@@ -274,9 +320,58 @@ Detail penuh di `TASKBOARD.md` §8. Ringkas:
 - 8 keputusan (D1–D8), 8 asumsi (A1–A8), 5 blocker (B1–B5).
 - File ini dibuat.
 
-**Perintah dijalankan:** `git init`, inspeksi file/env, unduh & parsing OAS Etsy (via node).
-**Hasil:** Plan siap. Tidak ada kode aplikasi dihasilkan (sesuai lingkup Phase 0).
+---
 
-**Fase berikutnya:** Phase 1 — Foundation (scaffold Next.js + TS + Tailwind + sidebar + Zod config + `.env.example` + migrasi awal).
+## 9. Ringkasan Phase 1 (Foundation) — SELESAI (2026-10-11)
 
-**Keterbatasan yang tersisa:** B1 (Etsy key), B2 (Supabase), B3 (Docker/n8n), B4 (HTTPS OAuth), B5 (access level app) — semuanya tidak memblokir Phase 1.
+- Next.js 16.4.0 (Turbopack) + React 19.3 + TypeScript + Tailwind CSS v4.
+- shadcn/ui di-init dengan base-ui (14 komponen UI: button, card, badge, input, table, sidebar, dll.).
+- Layout sidebar responsif (`src/components/app-sidebar.tsx`) + 12 rute dashboard.
+- Zod env schema terpusat (`src/lib/config/env.ts`) + konstanta navigasi (`app.ts`).
+- `.env.example` dibuat tanpa nilai rahasia.
+- Migrasi DB SQL berversi: `0001_initial_schema.sql` (12 tabel) + `0002_rls.sql` (RLS).
+- Runner migrasi idempotent: `scripts/migrate.js` (`npm run db:migrate`).
+- Commit: `476f407`.
+
+---
+
+## 10. Ringkasan Phase 2 (Etsy Client & Product Explorer) — SELESAI (2026-10-11)
+
+- **Adapter Etsy server-only:** `src/lib/etsy/client.ts` — rate-limit parsing, 429 backoff retry, safe logging tanpa secret.
+- **Normalizer:** `src/lib/etsy/normalizer.ts` — `amount / divisor`, epoch ke ISO, sanitasi tags.
+- **Database repo:** `src/lib/db/listings-repo.ts` — `recordSearchRun`, `upsertListings` (dedup merge-duplicates), `getStoredListing`.
+- **API internal:** `/api/products` (search), `/api/products/[etsyListingId]` (detail), `/api/ideas` (save idea).
+- **Halaman Product Explorer:** `/products` — search form, card grid, pagination 36 item/halaman.
+- **Halaman Detail:** `/products/[etsyListingId]` — galeri, metadata, riwayat snapshot observasi.
+- **Unit & integration test:** `tests/normalizer-and-dedup.test.mjs` (`npm test`) — 3 unit test + integration dedup/upsert ke Supabase **LULUS**.
+- Commit: `c3f8ead`.
+
+---
+
+## 11. Ringkasan Phase 2b (UX Polish Explorer) — SELESAI (2026-10-11)
+
+Rangkaian 11 perbaikan UX atas permintaan pengguna:
+- **P2-10:** Galeri semua gambar di kartu (auto-slide saat hover + tombol navigasi kiri/kanan).
+- **P2-11:** Tampilkan video listing di halaman detail via `getListingVideos` (publik).
+- **P2-12 & P2-13:** Konversi semua harga → IDR via API kurs harian (`open.er-api.com`, cache 24 jam) — tanpa desimal, pemisah ribuan titik (`formatIDR`).
+- **P2-14:** Link nama toko ke Etsy + nama negara teks (di kartu).
+- **P2-15:** Tombol salin (ikon) untuk deskripsi dan tags.
+- **P2-16:** Filter Digital vs Fisik di panel filter + urutan A–Z/Z–A.
+- **P2-17:** Bar filter + ringkasan hasil **sticky** (tidak ikut scroll).
+- **P2-18:** Persistensi query pencarian antar-navigasi (`sessionStorage`).
+- **P2-19:** Fix hydration mismatch — format tanggal/angka/negara dibuat **deterministik statis** (bukan `Intl.*`).
+- **P2-20:** Style judul segmen seragam di seluruh 13 halaman (`PAGE_TITLE_CLASS`).
+- Commit: `51282a6`, `32e02cb`, `b86e5fa`, `eaa62e8`, `b2f4b23`, `a74a11e`, `2262e0f`.
+
+---
+
+## 12. Posisi Saat Ini & Langkah Berikutnya
+
+- **Posisi saat ini:** Phase 0, 1, 2, 2b selesai (33/71 task, 46%).
+- **Fase aktif berikutnya:** **Phase 3 — Daily Discovery & Snapshots** (`P3-01..P3-08`).
+  1. `discovery_seeds` configurable dari Settings (tabel DB sudah ada).
+  2. Scheduled job + manual trigger (job idempotent, catat `job_runs`).
+  3. Simpan snapshot listing (append-only, dedup window).
+  4. Today's Etsy Trends `/` — baca data tersimpan, empty/stale/error states.
+  5. Timestamp sinkronisasi + data coverage/sufficiency.
+- **Blocker aktif:** B3 (n8n/Docker — ditunda ke Phase 6), B4 (OAuth HTTPS — Phase 5), B5 (scope OAuth — Phase 5), B6 (API kurs — ada fallback). B1 & B2 sudah **RESOLVED**.
