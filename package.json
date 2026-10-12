@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node tests/normalizer-and-dedup.test.mjs",
+    "test": "node tests/normalizer-and-dedup.test.mjs && node tests/discovery-and-snapshots.test.mjs",
     "db:migrate": "node scripts/migrate.js"
   },
   "dependencies": {

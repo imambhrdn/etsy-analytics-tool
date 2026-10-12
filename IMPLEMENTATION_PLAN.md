@@ -18,8 +18,8 @@
 | 1 Foundation | ✅ | `src/`, `migrations/`, `.env.example` |
 | 2 Etsy client & Explorer | ✅ | `src/lib/etsy/`, `/products`, tests pass |
 | 2b UX polish Explorer | ✅ | `commit:51282a6`, `32e02cb`, `b86e5fa` |
-| 3 Discovery & snapshots | ⏳ **aktif** | — |
-| 4 Scoring & Idea Vault | ⬜ | — |
+| 3 Discovery & snapshots | ✅ | `src/lib/discovery/`, `/`, tests pass |
+| 4 Scoring & Idea Vault | ⏳ **aktif** | — |
 | 5 Competitor & My Shop | ⬜ | — |
 | 6 n8n & reports | ⬜ | — |
 | 7 Hardening | ⬜ | — |
@@ -282,8 +282,8 @@ etsyintelegnet/
 | **1** | Foundation | Next.js+TS+Tailwind, sidebar, Zod config, `.env.example`, migrasi awal | `[x]` | `file:src/`, `migrations/`, `.env.example` |
 | **2** | Etsy client & Explorer | Adapter server-only, `/products`, detail, `search_runs`, dedup | `[x]` | `file:src/lib/etsy/`, `/products`, tests pass |
 | **2b** | UX polish Explorer | Galeri gambar+video, kurs IDR, filter digital/fisik, sticky bar | `[x]` | `commit:51282a6`, `32e02cb`, `b86e5fa` |
-| **3** | Discovery & snapshots | Seeds, job, snapshots, `/` Trends, states | ⏳ **aktif** | — |
-| **4** | Scoring & Idea Vault | Delta 7/30/90, klasifikasi, score, `/ideas`, unit test | `[ ]` | — |
+| **3** | Discovery & snapshots | Seeds, job, snapshots, `/` Trends, states | `[x]` | `file:src/lib/discovery/`, `/`, tests pass |
+| **4** | Scoring & Idea Vault | Delta 7/30/90, klasifikasi, score, `/ideas`, unit test | ⏳ **aktif** | — |
 | **5** | Competitor & My Shop | Tracking, OAuth (PKCE), `/my-shop` read-only | `[ ]` | B4, B5 |
 | **6** | n8n & reports | Workflow A/B/C docs, `/automation`, `/reports`, alerts | `[ ]` | B3 |
 | **7** | Hardening | lint/typecheck/test/build, a11y, RLS, README, DoD | `[ ]` | — |
@@ -297,16 +297,16 @@ Satu fase pada satu waktu, berurutan. Setelah tiap fase: jalankan lint/typecheck
 
 Detail penuh di `TASKBOARD.md` §8. Ringkas:
 
-- [ ] `/` baca daily trend results tersimpan (tanpa pencarian manual)
-- [ ] Tanpa histori → `Newly discovered`/`Insufficient history`, bukan `Trending up`
-- [ ] Refresh gagal → hasil lama tetap + warning stale
-- [ ] Snapshot append-only; delta hanya dgn baseline valid; tanpa ÷0
+- [x] `/` baca daily trend results tersimpan (tanpa pencarian manual)
+- [x] Tanpa histori → `Newly discovered`/`Insufficient history`, bukan `Trending up`
+- [x] Refresh gagal → hasil lama tetap + warning stale
+- [x] Snapshot append-only; delta hanya dgn baseline valid; tanpa ÷0
 - [ ] Data hilang ≠ nol
 - [ ] OAuth validasi state; token tak pernah ke client
-- [ ] Job status sukses/parsial/gagal; retry terbatas; alert dedupe
+- [x] Job status sukses/parsial/gagal; retry terbatas; alert dedupe
 - [ ] Tidak ada secret di repo/bundle; endpoint mutasi butuh auth
-- [ ] Aplikasi jalan lokal via README
-- [ ] `IMPLEMENTATION_PLAN.md` + checklist diperbarui
+- [x] Aplikasi jalan lokal via README
+- [x] `IMPLEMENTATION_PLAN.md` + checklist diperbarui
 
 ---
 

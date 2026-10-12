@@ -5,8 +5,8 @@
 > mengerjakan, dan memperbarui status di akhir sesi. Jangan hapus riwayat.
 
 - **Sumber spesifikasi:** `etsy_intelligence_prd.md` (Versi 1.0)
-- **Versi taskboard:** 1.1
-- **Terakhir diperbarui:** `2026-10-11` oleh `ses-2026-10-11-d` (UX polish Product Explorer)
+- **Versi taskboard:** 1.2
+- **Terakhir diperbarui:** `2026-10-12` oleh `ses-2026-10-12-b` (Phase 3 Daily discovery & snapshots)
 - **Zona waktu kerja:** Asia/Jakarta (WIB)
 
 ---
@@ -77,13 +77,13 @@ task aktif. **Kedaluwarsa default: 24 jam** — setelah itu boleh diambil alih
 | 1 | Foundation | Next.js/TS/Tailwind, layout sidebar, schema, `.env.example`, migrasi awal | `[x]` | `file:src/`, `migrations/`, `.env.example` |
 | 2 | Etsy API client & Product Explorer | adapter server-only, search, dedup/upsert, listing detail | `[x]` | `file:src/lib/etsy/`, `/products`, tests pass |
 | 2b | UX polish Product Explorer | galeri gambar+video, kurs IDR, filter, sticky bar, fix hydration | `[x]` | `commit:51282a6`, `32e02cb`, `b86e5fa` |
-| 3 | Daily discovery & snapshots | seeds, scheduled job, snapshot, Today's Etsy Trends | `[ ]` | |
+| 3 | Daily discovery & snapshots | seeds, scheduled job, snapshot, Today's Etsy Trends | `[x]` | `file:src/lib/discovery/`, `/`, tests pass |
 | 4 | Trend scoring & Idea Vault | delta 7/30/90, classification, score, Idea Vault, unit test | `[ ]` | |
 | 5 | Competitor Tracker & My Shop | tracking toko/listing, OAuth read-only | `[ ]` | |
 | 6 | n8n & reports | workflow A/B/C, job status, alerts dedup, report | `[ ]` | |
 | 7 | Hardening | lint/typecheck/test/build, a11y, RLS, docs, DoD | `[ ]` | |
 
-**Fase aktif saat ini:** `Phase 3` ← perbarui tiap sesi.
+**Fase aktif saat ini:** `Phase 4` ← perbarui tiap sesi.
 
 ---
 
@@ -144,18 +144,18 @@ Format kolom Bukti: `commit:<sha>` / `file:<path>` / `test:<nama>` / `note:<teks
 | P2-19 | **Fix hydration mismatch** (format tanggal/angka/negara deterministik) | P0 | `[x]` | ses-2026-10-11-d | `src/lib/utils.ts` (peta statis, bukan `Intl`); `commit:b86e5fa` |
 | P2-20 | Satukan style judul semua segmen (`PAGE_TITLE_CLASS`) | P2 | `[x]` | ses-2026-10-11-d | `file:src/components/page-header.tsx`; `commit:2262e0f` |
 
-### Phase 3 — Daily Discovery & Snapshots  `[ ]`
+### Phase 3 — Daily Discovery & Snapshots  `[x]`
 
 | ID | Task | Prio | Status | Owner | Bukti / Catatan |
 |:---|:-----|:----:|:------:|:------|:----------------|
-| P3-01 | `discovery_seeds` configurable (dari Settings) | P0 | `[ ]` | | |
-| P3-02 | Scheduled job + manual trigger (job idempotent) | P0 | `[ ]` | | |
-| P3-03 | Simpan `listing_snapshots` (tanpa overwrite) | P0 | `[ ]` | | |
-| P3-04 | Simpan `job_runs` (status sukses/parsial/gagal) | P0 | `[ ]` | | |
-| P3-05 | Today's Etsy Trends `/` (PRD §7.1) | P0 | `[ ]` | | |
-| P3-06 | Empty / stale / error / rate-limit states | P0 | `[ ]` | | |
-| P3-07 | Tampilkan timestamp + data coverage/sufficiency | P0 | `[ ]` | | |
-| P3-08 | Partial success: 1 keyword gagal ≠ hapus hasil lain | P0 | `[ ]` | | |
+| P3-01 | `discovery_seeds` configurable (dari Settings) | P0 | `[x]` | ses-2026-10-12-b | `file:src/components/settings/seed-settings.tsx`, `/api/seeds`, 12 default seeds |
+| P3-02 | Scheduled job + manual trigger (job idempotent) | P0 | `[x]` | ses-2026-10-12-b | `file:src/lib/discovery/runner.ts`, `/api/jobs/discovery` (trigger instant) |
+| P3-03 | Simpan `listing_snapshots` (tanpa overwrite) | P0 | `[x]` | ses-2026-10-12-b | `listings-repo.ts` (append-only on `listing_id,capture_window`), tests pass |
+| P3-04 | Simpan `job_runs` (status sukses/parsial/gagal) | P0 | `[x]` | ses-2026-10-12-b | `discovery-repo.ts` (`startJobRun`/`finishJobRun`), tercatat di DB |
+| P3-05 | Today's Etsy Trends `/` (PRD §7.1) | P0 | `[x]` | ses-2026-10-12-b | `file:src/app/page.tsx` + `trend-card.tsx` + `trend-filters.tsx`, 48 kandidat |
+| P3-06 | Empty / stale / error / rate-limit states | P0 | `[x]` | ses-2026-10-12-b | `page.tsx` (Live/Stale/Empty badge, stale warning banner, fallback aman) |
+| P3-07 | Tampilkan timestamp + data coverage/sufficiency | P0 | `[x]` | ses-2026-10-12-b | Last updated WIB, `confidence: Low/Medium/High`, observation date |
+| P3-08 | Partial success: 1 keyword gagal ≠ hapus hasil lain | P0 | `[x]` | ses-2026-10-12-b | `runner.ts` (try/catch per seed, resume loop, catat status partial) |
 
 ### Phase 4 — Trend Scoring & Idea Vault  `[ ]`
 
@@ -263,12 +263,12 @@ Format kolom Bukti: `commit:<sha>` / `file:<path>` / `test:<nama>` / `note:<teks
 | 1 | 8 / 8 | 100% |
 | 2 | 9 / 9 | 100% |
 | 2b | 11 / 11 (UX polish) | 100% |
-| 3 | 0 / 8 | 0% |
+| 3 | 8 / 8 | 100% |
 | 4 | 0 / 8 | 0% |
 | 5 | 0 / 8 | 0% |
 | 6 | 0 / 8 | 0% |
 | 7 | 0 / 6 | 0% |
-| **Total** | **33 / 71** | **46%** |
+| **Total** | **41 / 71** | **58%** |
 
 > Catatan: Phase 2b adalah rangkaian polish UX atas permintaan pengguna di atas fondasi Phase 2
 > (galeri gambar/video, kurs IDR, filter, sticky bar, fix hydration). Tidak mengubah lingkup PRD.
@@ -295,6 +295,18 @@ Format kolom Bukti: `commit:<sha>` / `file:<path>` / `test:<nama>` / `note:<teks
 ### Log
 
 <!-- Tambahkan entri baru di bawah baris ini -->
+
+### [2026-10-12] session:ses-2026-10-12-b
+- Fase: Phase 3 (Daily discovery & snapshots — P3-01..P3-08)
+- Task diklaim: P3-01..P3-08
+- Task selesai: P3-01..P3-08 → bukti: `file:src/lib/db/discovery-repo.ts`, `src/lib/discovery/runner.ts`, `src/app/page.tsx`, `src/components/trends/`, `src/components/settings/seed-settings.tsx`, `/api/jobs/discovery`, `/api/seeds`, `tests/discovery-and-snapshots.test.mjs`; test suite pass, live discovery job sukses.
+- Task diblokir: —
+- Perintah dijalankan: `npm test` (semua unit & integration test lolos), `npx next typegen` + `npx tsc --noEmit` (0 error), `npm run lint` (0 error), `npm run build` (exit code 0), `npm run dev` + eksekusi live discovery job (12 seeds default, 48 kandidat tersimpan di DB, KPI real).
+- Fase berikutnya: **Phase 4 (Trend Scoring & Idea Vault)**
+- Catatan/asumsi baru:
+  - Default 12 seed keyword dari PRD §8.1 diinisialisasi otomatis saat pertama kali dibuka.
+  - Job runner mendukung partial success & guard overlap 15 menit.
+  - Landing page `/` menampilkan status Live/Stale, KPI real, filter classification/window/sort, dan kartu kandidat tren.
 
 ### [2026-10-11] session:ses-2026-10-11-d
 - Fase: Phase 2 (UX polish lanjutan — P2-10..P2-20)
@@ -392,11 +404,11 @@ Format kolom Bukti: `commit:<sha>` / `file:<path>` / `test:<nama>` / `note:<teks
 Tandai `[x]` hanya setelah terbukti. Ini adalah syarat "MVP selesai".
 
 ### Today's Etsy Trends
-- [ ] `/` membaca daily trend results tersimpan tanpa pencarian manual
-- [ ] Filter kategori/periode/sort memperbarui hasil
-- [ ] Setiap kartu menampilkan waktu update + asal data
-- [ ] Tanpa histori → `Newly discovered` / `Insufficient history`, bukan `Trending up`
-- [ ] Refresh gagal → hasil terakhir tetap tampil + warning stale
+- [x] `/` membaca daily trend results tersimpan tanpa pencarian manual
+- [x] Filter kategori/periode/sort memperbarui hasil
+- [x] Setiap kartu menampilkan waktu update + asal data
+- [x] Tanpa histori → `Newly discovered` / `Insufficient history`, bukan `Trending up`
+- [x] Refresh gagal → hasil terakhir tetap tampil + warning stale
 - [ ] Data demo tidak tercampur data live
 
 ### Product Explorer & Historical Tracking
@@ -416,10 +428,10 @@ Tandai `[x]` hanya setelah terbukti. Ini adalah syarat "MVP selesai".
 - [ ] Data diambil hanya sesuai scope; koneksi kedaluwarsa ditandai
 
 ### Automation & Security
-- [ ] Job run menyimpan status sukses/parsial/gagal
-- [ ] Retry terbatas & tidak menghasilkan duplikasi
-- [ ] Rate limit ditangani; alert pakai dedupe key
-- [ ] Timestamp ditampilkan sesuai timezone
+- [x] Job run menyimpan status sukses/parsial/gagal
+- [x] Retry terbatas & tidak menghasilkan duplikasi
+- [x] Rate limit ditangani; alert pakai dedupe key
+- [x] Timestamp ditampilkan sesuai timezone
 - [ ] Tidak ada secret di repository/bundle client
 - [ ] Input API tervalidasi; endpoint mutasi butuh autentikasi
 - [ ] Akses database sesuai auth/RLS
@@ -447,3 +459,4 @@ Tandai `[x]` hanya setelah terbukti. Ini adalah syarat "MVP selesai".
 |:------|:--------|:----------|
 | 1.0 | — | Taskboard awal dibuat dari PRD v1.0 (8 fase, 60 task, AC, session log). |
 | 1.1 | 2026-10-11 | Phase 0/1/2 selesai + 11 task UX polish (P2-10..P2-20); B1/B2 resolved; D10–D12; bagian 7b "Rencana Sesi Berikutnya"; progress 33/71. |
+| 1.2 | 2026-10-12 | Phase 3 selesai (P3-01..P3-08): daily discovery runner, seed keywords UI/API, Today's Trends landing page, live job execution; progress 41/71 (58%). |

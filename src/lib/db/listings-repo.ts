@@ -54,7 +54,7 @@ export async function recordSearchRun(params: {
  * Upsert listings ke database dengan dedup berdasarkan etsy_listing_id (PRD §7.2, §10).
  * Juga mencatat snapshot harian ke listing_snapshots (append-only, idempotence by capture_window).
  */
-export async function upsertListings(listings: NormalizedListing[]) {
+export async function upsertListings(listings: NormalizedListing[], source = "explorer") {
   if (listings.length === 0) return [];
   const db = createServerDb();
   const now = new Date().toISOString();
@@ -101,7 +101,7 @@ export async function upsertListings(listings: NormalizedListing[]) {
         num_favorers: l.numFavorers,
         quantity: l.quantity,
         state: l.state,
-        source: "explorer",
+        source,
         capture_window: captureWindow,
         captured_at: now,
       }));
